@@ -4,25 +4,26 @@ package member1;
  * ============================================================================
  * MEMBER 1 (Backbone) - SlotType Enum
  * ============================================================================
- * Yeh enum parking garage ke alag-alag slot types ko define karta hai.
- * Garage me 4 types ke slots hain:
- * 1. SMALL       -> Bike ke liye chhota slot [s]
- * 2. REGULAR     -> Car ke liye standard slot [ ]
- * 3. LARGE       -> SUV ke liye bada slot [L]
- * 4. EV_CHARGING -> Electric Vehicle ke liye charging wala slot [⚡]
+ * Garage ke andar parking bays (slots) ke 4 standard types hote hain:
+ *
+ * 1. SMALL       -> Bike / Two-Wheeler ke liye chhota slot  [s]
+ * 2. REGULAR     -> Standard Cars / Sedan / Hatchback      [ ]
+ * 3. LARGE       -> SUV / Badi gaadiyon ke liye bada slot  [L]
+ * 4. EV_CHARGING -> Electric Vehicle with charging socket  [⚡]
  * ============================================================================
  */
 public enum SlotType {
-    // Chhoti gaadiyon (Bike) ke liye slot
+
+    // 1. Chhoti gaadiyon (Bikes) ke liye bay
     SMALL("Small Slot (Bikes)", "[s]"),
 
-    // Aam gaadiyon (Car) ke liye normal slot
+    // 2. Normal family cars (Sedan / Hatchback) ke liye bay
     REGULAR("Regular Slot (Cars)", "[ ]"),
 
-    // Badi gaadiyon (SUV) ke liye bada slot
+    // 3. Heavy / Large vehicles (SUVs) ke liye bay
     LARGE("Large Slot (SUVs)", "[L]"),
 
-    // Electric gaadiyon ko charge karne wala slot
+    // 4. Electric gaadiyon ke liye dedicated charging bay
     EV_CHARGING("EV Charging Slot", "[⚡]");
 
     private final String displayName;
@@ -40,5 +41,13 @@ public enum SlotType {
     public String getDisplaySymbol() {
         return displaySymbol;
     }
-}
 
+    public boolean isEVCharging() {
+        return this == EV_CHARGING;
+    }
+
+    @Override
+    public String toString() {
+        return displayName + " " + displaySymbol;
+    }
+}

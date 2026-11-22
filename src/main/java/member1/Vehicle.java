@@ -6,12 +6,11 @@ import java.util.Objects;
  * ============================================================================
  * MEMBER 1 (Backbone) - Vehicle Class
  * ============================================================================
- * Yeh class kisi bhi gaadi ka blueprint hai.
- * Isme 2 cheezein hoti hain:
- * 1. licensePlate: Gaadi ka number plate (uppercase aur bina space ke)
- * 2. type: Gaadi ka type (BIKE, CAR, SUV, EV)
+ * Har incoming gaadi ka data model (POJO):
+ * 1. licensePlate : Indian number plate (e.g. MH12AB1234)
+ * 2. type         : VehicleType (BIKE, CAR, SUV, EV)
  *
- * Encapsulation: Variables private final hain taaki data safe rahe.
+ * Immutable Design: Fields final hain taaki data change na ho sake (Thread-Safe).
  * ============================================================================
  */
 public class Vehicle {
@@ -19,7 +18,6 @@ public class Vehicle {
     private final String licensePlate;
     private final VehicleType type;
 
-    // Constructor: Number plate aur type validate karke store karta hai
     public Vehicle(String licensePlate, VehicleType type) {
         if (licensePlate == null || licensePlate.trim().isEmpty()) {
             throw new IllegalArgumentException("License plate khaali nahi ho sakti!");
@@ -27,8 +25,9 @@ public class Vehicle {
         if (type == null) {
             throw new IllegalArgumentException("Vehicle type null nahi ho sakta!");
         }
-        // Trim karke Capital letters me convert karte hain taaki match karne me dikkat na aaye
-        this.licensePlate = licensePlate.trim().toUpperCase();
+
+        // Spaces remove karke uppercase normalize karte hain taaki lookup me breakdown na ho
+        this.licensePlate = licensePlate.replaceAll("\\s+", "").toUpperCase();
         this.type = type;
     }
 
@@ -58,4 +57,3 @@ public class Vehicle {
         return String.format("%s [%s]", licensePlate, type.name());
     }
 }
-

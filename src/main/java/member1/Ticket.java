@@ -10,9 +10,9 @@ import java.util.Objects;
  * ============================================================================
  * MEMBER 1 (Backbone) - Ticket Class
  * ============================================================================
- * Yeh class parking ticket ko represent karti hai.
- * Gaadi aate samay ticket ACTIVE banta hai jisme entryTime aur slot number hota hai.
- * Gaadi jaate samay ticket COMPLETE hota hai jisme exitTime aur final fees hoti hai.
+ * Parking session ka official audit record:
+ * - Entry par: Ticket ACTIVE banta hai (TicketId, Vehicle, Slot, EntryTime)
+ * - Exit par : Ticket COMPLETE hota hai (ExitTime, FeeBreakdown, Active=false)
  * ============================================================================
  */
 public class Ticket {
@@ -35,6 +35,9 @@ public class Ticket {
         this.active = true;
     }
 
+    /**
+     * Checkout ke waqt ticket ko close karta hai aur calculated bill attach karta hai.
+     */
     public void completeTicket(LocalDateTime exitTime, FeeBreakdown feeBreakdown) {
         if (!this.active) {
             throw new IllegalStateException("Ticket " + ticketId + " pehle se close ho chuka hai.");
@@ -44,6 +47,9 @@ public class Ticket {
         this.active = false;
     }
 
+    /**
+     * Gaadi garage me kitni der rahi (Duration).
+     */
     public Duration getDuration() {
         LocalDateTime end = (exitTime != null) ? exitTime : LocalDateTime.now();
         return Duration.between(entryTime, end);
@@ -87,4 +93,3 @@ public class Ticket {
                 ticketId, vehicle, slot.getId(), entryTime, active ? "ACTIVE" : "COMPLETED");
     }
 }
-
