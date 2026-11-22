@@ -668,6 +668,18 @@ public class ParkingGarage {
         return activeTickets.size();
     }
 
+    public int getAvailableSlotsCount() {
+        return getTotalCapacity() - getActiveVehicleCount();
+    }
+
+    public boolean isFull() {
+        return getActiveVehicleCount() >= getTotalCapacity();
+    }
+
+    public boolean isEmpty() {
+        return activeTickets.isEmpty();
+    }
+
     public double getTotalRevenue() {
         return totalRevenue;
     }
