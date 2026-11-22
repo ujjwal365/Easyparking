@@ -692,8 +692,7 @@
     <!-- 1. DARK GREEN & WHITE HEADER -->
     <header>
         <div class="header-title">
-            <h1>🚗 Smart Parking Garage System</h1>
-            <p>Java 17 Academic Project &bull; Object-Oriented Multi-Storey Garage</p>
+            <h1>Smart Parking Garage System</h1>
         </div>
         <div class="header-right">
             <span class="badge-online">🟢 System Online (Port 8080)</span>
@@ -798,7 +797,7 @@
             <div class="section-header">
                 <h2>📊 Vehicle Tariff &amp; Revenue Breakdown</h2>
                 <span style="font-size: 0.78rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 4px;">
-                    ⏱️ First 30 mins FREE &bull; Math.ceil hourly rounding
+                    ⏱️ First 30 mins FREE
                 </span>
             </div>
 
@@ -898,9 +897,6 @@
                     <span>🔄</span> Refresh Table
                 </button>
             </div>
-            <p style="font-size: 0.8rem; color: #6b7280; margin-bottom: 8px;">
-                Complete audit log with stay durations, billable hours, and revenue breakdown for Bike, Car, SUV, and EV.
-            </p>
 
             <div class="table-responsive">
                 <table>
@@ -1238,7 +1234,7 @@
             document.getElementById('billEntry').textContent = d.entryTime;
             document.getElementById('billExit').textContent = d.exitTime;
             document.getElementById('billDuration').textContent = `${d.totalMinutes} mins`;
-            document.getElementById('billHours').textContent = `${d.billableHours} hr(s) [Math.ceil]`;
+            document.getElementById('billHours').textContent = `${d.billableHours} hr(s)`;
             document.getElementById('billBaseFee').textContent = `₹ ${d.parkingFee.toFixed(2)}`;
 
             const row = document.getElementById('billChargingRow');
