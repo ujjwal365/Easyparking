@@ -1,7 +1,18 @@
-# 🚗 Smart Parking Garage (Multi-Storey Automated Car Parking System)
+# 🚗 Easyparking: Smart Multi-Storey Automated Car Parking System
 
-> **Academic Project in Plain Java 17 & Maven**  
-> Built for students to understand, present, and explain Core Java concepts (2D Arrays, ArrayList, HashMap, Enums, Time API, Custom Exceptions, OOP encapsulation & separation of concerns).
+> **A lightweight, automated parking management system in plain Java 17 & Maven.**  
+> Built for clarity, clean OOP architecture, and effortless operation with zero external frameworks.
+
+---
+
+## 🌟 What Makes Easyparking Easy?
+
+1. **⚡ Zero Guesswork Slot Routing**: Drivers never have to hunt for parking bays. An automated distance formula (`floor × 20 + slotIndex`) routes every vehicle to the nearest free and compatible bay relative to the exit.
+2. **🔌 Smart EV Allocation & Fallback**: Automatically prioritizes dedicated EV charging bays (Flat ₹60 + ₹15/hr). If all charging bays are occupied, it automatically routes EVs to regular bays with ₹0 charging surcharge.
+3. **💰 100% Automated Tariff & Billing**: Transparent financial calculations featuring a 30-minute free grace period, `Math.ceil` hourly rounding, vehicle-tiered rates (Bike: ₹10/h, Car: ₹30/h, SUV: ₹50/h, EV: ₹40/h), and 24-hour daily caps.
+4. **🔍 Instant O(1) Plate Indexing**: Valet retrieval locates any parked vehicle across all 3 floors in constant time using license plate hashing.
+5. **🏢 Clean Visual 2D Dashboard**: Minimalist dark-green & white interface with instant color recognition: **Light Green = Available**, **Red = Occupied**, with direct 1-click park, exit, and printable receipts.
+6. **📦 Zero External Dependencies**: 100% plain Java 17 with built-in `com.sun.net.httpserver` — no Spring Boot, no Node.js/npm, no database installation required. Just clone and run!
 
 ---
 
