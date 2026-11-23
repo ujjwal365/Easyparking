@@ -20,6 +20,10 @@ public class ParkingSlot {
     private final SlotType slotType;
     private Vehicle currentVehicle;
 
+    // ── Feature 3: Maintenance Mode Flag ──
+    // Jab slot maintenance me ho, toh usme gaadi park nahi honi chahiye
+    private boolean underMaintenance = false;
+
     public ParkingSlot(int floor, int slotNumber, SlotType slotType) {
         if (floor < 0 || slotNumber < 0) {
             throw new IllegalArgumentException("Floor aur slot number negative nahi ho sakte.");
@@ -39,9 +43,26 @@ public class ParkingSlot {
 
     /**
      * Kya slot khali hai aur park karne ke liye tayyar hai?
+     * Slot tab available hai jab: koi gaadi na ho AND maintenance mode off ho.
      */
     public boolean isAvailable() {
-        return currentVehicle == null;
+        return currentVehicle == null && !underMaintenance;
+    }
+
+    // ── Feature 3: Maintenance Mode Getter/Setter ──
+    /**
+     * Kya slot maintenance under hai? (e.g., repair, cleaning, broken)
+     */
+    public boolean isUnderMaintenance() {
+        return underMaintenance;
+    }
+
+    /**
+     * Slot ko maintenance mode ON/OFF karne ke liye.
+     * ON karne se slot unavailable ho jaayega parking ke liye.
+     */
+    public void setUnderMaintenance(boolean underMaintenance) {
+        this.underMaintenance = underMaintenance;
     }
 
     /**
@@ -90,6 +111,10 @@ public class ParkingSlot {
      * 2D ASCII Grid me print karne ke liye display symbol.
      */
     public String getDisplaySymbol() {
+        // Maintenance mode me ho toh [X] dikhao
+        if (underMaintenance) {
+            return "[X]";
+        }
         if (isOccupied()) {
             return switch (currentVehicle.getType()) {
                 case BIKE -> "[B]";
@@ -116,9 +141,14 @@ public class ParkingSlot {
 
     @Override
     public String toString() {
-        return String.format("%s (%s) -> %s",
-                getId(),
-                slotType.name(),
-                isOccupied() ? "Occupied by " + currentVehicle : "Free");
+        String status;
+        if (underMaintenance) {
+            status = "MAINTENANCE";
+        } else if (isOccupied()) {
+            status = "Occupied by " + currentVehicle;
+        } else {
+            status = "Free";
+        }
+        return String.format("%s (%s) -> %s", getId(), slotType.name(), status);
     }
 }

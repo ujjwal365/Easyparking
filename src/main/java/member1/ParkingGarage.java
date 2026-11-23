@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -51,6 +52,10 @@ public class ParkingGarage {
     // 3. System Counters
     private final AtomicInteger ticketCounter = new AtomicInteger(1000);
     private double totalRevenue = 0.0;
+
+    // ── Feature 4: Peak Occupancy Tracker ──
+    // Garage me ek saath sabse zyada kitni gaadiyaan thi, uska record
+    private int peakOccupancy = 0;
 
     /**
      * Default constructor: 3 floors x 10 bays = 30 total bays.
@@ -148,6 +153,12 @@ public class ParkingGarage {
         Ticket ticket = new Ticket(ticketId, vehicle, bestSlot, entryTime);
         activeTickets.put(plate, ticket);
 
+        // ── Feature 4: Peak check karo ──
+        // Agar abhi ki active count pichle peak se zyada hai toh update karo
+        if (activeTickets.size() > peakOccupancy) {
+            peakOccupancy = activeTickets.size();
+        }
+
         return ticket;
     }
 
@@ -214,6 +225,7 @@ public class ParkingGarage {
         activeTickets.clear();
         ticketHistory.clear();
         totalRevenue = 0.0;
+        peakOccupancy = 0;
         initializeGrid(grid.length, grid[0].length);
     }
 
@@ -271,5 +283,100 @@ public class ParkingGarage {
 
     public FeeCalculator getFeeCalculator() {
         return feeCalculator;
+    }
+
+    // ========================================================================
+    // 🆕 FEATURE 1: Per-Floor & Per-Vehicle Analytics
+    // ========================================================================
+
+    /**
+     * Ek specific floor par kitne slots occupied (bhare) hain?
+     * Example: getOccupiedCountByFloor(0) -> Floor 0 par kitni gaadiyaan parked hain
+     */
+    public int getOccupiedCountByFloor(int floor) {
+        if (floor < 0 || floor >= grid.length) {
+            throw new IllegalArgumentException("Floor " + floor + " valid nahi hai (0 se " + (grid.length - 1) + " tak hona chahiye).");
+        }
+        int count = 0;
+        for (ParkingSlot slot : grid[floor]) {
+            if (slot.isOccupied()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Ek specific VehicleType ki kitni gaadiyaan abhi actively parked hain?
+     * Example: getActiveCountByType(VehicleType.EV) -> Kitni EVs andar hain
+     */
+    public int getActiveCountByType(VehicleType type) {
+        Objects.requireNonNull(type, "VehicleType null nahi ho sakta");
+        int count = 0;
+        for (Ticket ticket : activeTickets.values()) {
+            if (ticket.getVehicle().getType() == type) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * Garage kitna percent bhara hua hai? (0.0% se 100.0%)
+     * Formula: (occupied / total) * 100
+     */
+    public double getOccupancyRate() {
+        int total = getTotalCapacity();
+        if (total == 0) return 0.0;
+        return (double) activeTickets.size() / total * 100.0;
+    }
+
+    // ========================================================================
+    // 🆕 FEATURE 2: Ticket ID Lookup
+    // ========================================================================
+
+    /**
+     * Ticket ID se directly ticket dhoondho (e.g., "TKT-1001").
+     * Optional return karti hai, present hoga agar ticket active hai.
+     */
+    public Optional<Ticket> findTicketById(String ticketId) {
+        if (ticketId == null || ticketId.isBlank()) {
+            return Optional.empty();
+        }
+        return activeTickets.values().stream()
+                .filter(t -> t.getTicketId().equals(ticketId))
+                .findFirst();
+    }
+
+    // ========================================================================
+    // 🆕 FEATURE 4: Peak Occupancy Tracker
+    // ========================================================================
+
+    /**
+     * Garage ki lifetime me ek saath max kitni gaadiyaan thi? (High watermark)
+     * Yeh metric capacity planning aur analytics ke liye useful hai.
+     */
+    public int getPeakOccupancy() {
+        return peakOccupancy;
+    }
+
+    // ========================================================================
+    // 🆕 FEATURE 5: GarageSummary Snapshot
+    // ========================================================================
+
+    /**
+     * Garage ki poori summary ek snapshot record me return karta hai.
+     * Dashboard, reporting aur analytics ke liye ek jagah sab data mil jaata hai.
+     */
+    public GarageSummary getSummarySnapshot() {
+        return new GarageSummary(
+                getTotalCapacity(),
+                getActiveVehicleCount(),
+                getAvailableSlotsCount(),
+                getOccupancyRate(),
+                totalRevenue,
+                ticketHistory.size(),
+                peakOccupancy
+        );
     }
 }
