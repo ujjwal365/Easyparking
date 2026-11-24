@@ -3,15 +3,14 @@ package member1;
 import java.util.Objects;
 
 /**
- * ============================================================================
- * MEMBER 1 (Backbone) - ParkingSlot Class
- * ============================================================================
- * Garage ke single parking slot (bay) ka blueprint:
- * - floor        : Kaunse floor par hai (0, 1, 2)
- * - slotNumber   : Floor par kaunsa number hai (0 se 9)
- * - slotType     : Slot ka type (SMALL, REGULAR, LARGE, EV_CHARGING)
- * - currentVehicle: Abhi kaunsi gaadi khadi hai (null if empty)
- * ============================================================================
+ * ParkingSlot — Garage ka ek single parking bay.
+ *
+ * Har slot ke paas yeh info hoti hai:
+ *   floor          → kaunse floor pe hai (0, 1, 2)
+ *   slotNumber     → us floor pe number (0-9)
+ *   slotType       → SMALL / REGULAR / LARGE / EV_CHARGING
+ *   currentVehicle → kaunsi gaadi khadi hai (null = khali)
+ *   underMaintenance → slot repair me hai toh true (parking band)
  */
 public class ParkingSlot {
 
@@ -19,10 +18,7 @@ public class ParkingSlot {
     private final int slotNumber;
     private final SlotType slotType;
     private Vehicle currentVehicle;
-
-    // ── Feature 3: Maintenance Mode Flag ──
-    // Jab slot maintenance me ho, toh usme gaadi park nahi honi chahiye
-    private boolean underMaintenance = false;
+    private boolean underMaintenance = false;   // maintenance mode (default OFF)
 
     public ParkingSlot(int floor, int slotNumber, SlotType slotType) {
         if (floor < 0 || slotNumber < 0) {
@@ -34,87 +30,55 @@ public class ParkingSlot {
         this.currentVehicle = null;
     }
 
-    /**
-     * Kya slot me abhi koi gaadi khadi hai?
-     */
+    // --- Status checks ---
+
+    // Kya slot me gaadi khadi hai?
     public boolean isOccupied() {
         return currentVehicle != null;
     }
 
-    /**
-     * Kya slot khali hai aur park karne ke liye tayyar hai?
-     * Slot tab available hai jab: koi gaadi na ho AND maintenance mode off ho.
-     */
+    // Kya slot parking ke liye available hai? (khali + maintenance off)
     public boolean isAvailable() {
         return currentVehicle == null && !underMaintenance;
     }
 
-    // ── Feature 3: Maintenance Mode Getter/Setter ──
-    /**
-     * Kya slot maintenance under hai? (e.g., repair, cleaning, broken)
-     */
-    public boolean isUnderMaintenance() {
-        return underMaintenance;
-    }
+    // --- Maintenance mode ---
 
-    /**
-     * Slot ko maintenance mode ON/OFF karne ke liye.
-     * ON karne se slot unavailable ho jaayega parking ke liye.
-     */
-    public void setUnderMaintenance(boolean underMaintenance) {
-        this.underMaintenance = underMaintenance;
-    }
+    public boolean isUnderMaintenance()                   { return underMaintenance; }
+    public void setUnderMaintenance(boolean maintenance)  { this.underMaintenance = maintenance; }
 
-    /**
-     * Slot me gaadi park karta hai. Agar slot pehle se bhara ho toh error deta hai.
-     */
+    // --- Park & Vacate ---
+
+    // Gaadi park karo (agar slot already bhara toh error)
     public void park(Vehicle vehicle) {
         if (isOccupied()) {
-            throw new IllegalStateException("Slot " + getId() + " pehle se bhara hua hai! Current: " + currentVehicle);
+            throw new IllegalStateException("Slot " + getId() + " already bhara hai!");
         }
-        this.currentVehicle = Objects.requireNonNull(vehicle, "Park karne ke liye vehicle zaroori hai");
+        this.currentVehicle = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
     }
 
-    /**
-     * Slot ko khali karta hai aur jo gaadi nikli use return karta hai.
-     */
+    // Slot khali karo, jo gaadi nikli woh return karo
     public Vehicle vacate() {
         Vehicle departed = this.currentVehicle;
         this.currentVehicle = null;
         return departed;
     }
 
-    public int getFloor() {
-        return floor;
-    }
+    // --- Getters ---
 
-    public int getSlotNumber() {
-        return slotNumber;
-    }
+    public int getFloor()              { return floor; }
+    public int getSlotNumber()         { return slotNumber; }
+    public SlotType getSlotType()      { return slotType; }
+    public Vehicle getCurrentVehicle() { return currentVehicle; }
 
-    public SlotType getSlotType() {
-        return slotType;
-    }
-
-    public Vehicle getCurrentVehicle() {
-        return currentVehicle;
-    }
-
-    /**
-     * Slot ID format: "F0-S02", "F1-S07"
-     */
+    // Slot ID: "F0-S02", "F1-S07"
     public String getId() {
         return String.format("F%d-S%02d", floor, slotNumber);
     }
 
-    /**
-     * 2D ASCII Grid me print karne ke liye display symbol.
-     */
+    // Grid display: [X]=maintenance, [B/C/S/E]=occupied, [s]/[ ]/[L]/[⚡]=free
     public String getDisplaySymbol() {
-        // Maintenance mode me ho toh [X] dikhao
-        if (underMaintenance) {
-            return "[X]";
-        }
+        if (underMaintenance) return "[X]";
         if (isOccupied()) {
             return switch (currentVehicle.getType()) {
                 case BIKE -> "[B]";
@@ -126,6 +90,8 @@ public class ParkingSlot {
         return slotType.getDisplaySymbol();
     }
 
+    // --- equals / hashCode / toString ---
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -135,20 +101,13 @@ public class ParkingSlot {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(floor, slotNumber);
-    }
+    public int hashCode() { return Objects.hash(floor, slotNumber); }
 
     @Override
     public String toString() {
-        String status;
-        if (underMaintenance) {
-            status = "MAINTENANCE";
-        } else if (isOccupied()) {
-            status = "Occupied by " + currentVehicle;
-        } else {
-            status = "Free";
-        }
-        return String.format("%s (%s) -> %s", getId(), slotType.name(), status);
+        String status = underMaintenance ? "MAINTENANCE"
+                      : isOccupied()     ? "Occupied by " + currentVehicle
+                      :                    "Free";
+        return getId() + " (" + slotType.name() + ") -> " + status;
     }
 }

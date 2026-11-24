@@ -3,15 +3,11 @@ package member1;
 import java.util.Objects;
 
 /**
- * ============================================================================
- * MEMBER 1 (Backbone) - Vehicle Class
- * ============================================================================
- * Har incoming gaadi ka data model (POJO):
- * 1. licensePlate : Indian number plate (e.g. MH12AB1234)
- * 2. type         : VehicleType (BIKE, CAR, SUV, EV)
+ * Vehicle — Ek gaadi ka simple data model.
  *
- * Immutable Design: Fields final hain taaki data change na ho sake (Thread-Safe).
- * ============================================================================
+ * Fields (dono final = immutable, thread-safe):
+ *   licensePlate → number plate (e.g. MH12AB1234), auto uppercase + spaces removed
+ *   type         → BIKE / CAR / SUV / EV
  */
 public class Vehicle {
 
@@ -19,6 +15,7 @@ public class Vehicle {
     private final VehicleType type;
 
     public Vehicle(String licensePlate, VehicleType type) {
+        // Plate blank nahi honi chahiye
         if (licensePlate == null || licensePlate.trim().isEmpty()) {
             throw new IllegalArgumentException("License plate khaali nahi ho sakti!");
         }
@@ -26,34 +23,26 @@ public class Vehicle {
             throw new IllegalArgumentException("Vehicle type null nahi ho sakta!");
         }
 
-        // Spaces remove karke uppercase normalize karte hain taaki lookup me breakdown na ho
+        // Normalize — spaces hatao, uppercase karo (taaki lookup me dikkat na ho)
         this.licensePlate = licensePlate.replaceAll("\\s+", "").toUpperCase();
         this.type = type;
     }
 
-    public String getLicensePlate() {
-        return licensePlate;
-    }
+    public String getLicensePlate() { return licensePlate; }
+    public VehicleType getType()    { return type; }
 
-    public VehicleType getType() {
-        return type;
-    }
-
+    // Do vehicles equal hain agar unki plate same hai
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Vehicle vehicle = (Vehicle) o;
-        return Objects.equals(licensePlate, vehicle.licensePlate);
+        Vehicle v = (Vehicle) o;
+        return Objects.equals(licensePlate, v.licensePlate);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(licensePlate);
-    }
+    public int hashCode() { return Objects.hash(licensePlate); }
 
     @Override
-    public String toString() {
-        return String.format("%s [%s]", licensePlate, type.name());
-    }
+    public String toString() { return licensePlate + " [" + type.name() + "]"; }
 }

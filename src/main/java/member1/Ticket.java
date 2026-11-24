@@ -7,89 +7,66 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * ============================================================================
- * MEMBER 1 (Backbone) - Ticket Class
- * ============================================================================
- * Parking session ka official audit record:
- * - Entry par: Ticket ACTIVE banta hai (TicketId, Vehicle, Slot, EntryTime)
- * - Exit par : Ticket COMPLETE hota hai (ExitTime, FeeBreakdown, Active=false)
- * ============================================================================
+ * Ticket — Parking session ka record (receipt jaisa).
+ *
+ * Jab gaadi ENTER karti hai → Ticket banta hai (ACTIVE)
+ * Jab gaadi EXIT karti hai  → Ticket complete hota hai (fee + exit time set)
  */
 public class Ticket {
 
-    private final String ticketId;
-    private final Vehicle vehicle;
-    private final ParkingSlot slot;
-    private final LocalDateTime entryTime;
-    private LocalDateTime exitTime;
-    private FeeBreakdown feeBreakdown;
-    private boolean active;
+    private final String ticketId;         // unique ID, e.g. "TKT-1001"
+    private final Vehicle vehicle;         // kaunsi gaadi
+    private final ParkingSlot slot;        // kaunse slot me parked
+    private final LocalDateTime entryTime; // kab aayi
+    private LocalDateTime exitTime;        // kab gayi (null jab tak andar hai)
+    private FeeBreakdown feeBreakdown;     // bill ka breakdown (null jab tak active)
+    private boolean active;                // true = gaadi andar hai, false = checkout ho gayi
 
     public Ticket(String ticketId, Vehicle vehicle, ParkingSlot slot, LocalDateTime entryTime) {
-        this.ticketId = Objects.requireNonNull(ticketId, "Ticket ID null nahi ho sakta");
-        this.vehicle = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
-        this.slot = Objects.requireNonNull(slot, "Slot null nahi ho sakta");
+        this.ticketId  = Objects.requireNonNull(ticketId, "Ticket ID null nahi ho sakta");
+        this.vehicle   = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
+        this.slot      = Objects.requireNonNull(slot, "Slot null nahi ho sakta");
         this.entryTime = Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
-        this.exitTime = null;
+        this.exitTime  = null;
         this.feeBreakdown = null;
         this.active = true;
     }
 
-    /**
-     * Checkout ke waqt ticket ko close karta hai aur calculated bill attach karta hai.
-     */
+    // Checkout — ticket band karo aur bill lagao
     public void completeTicket(LocalDateTime exitTime, FeeBreakdown feeBreakdown) {
         if (!this.active) {
-            throw new IllegalStateException("Ticket " + ticketId + " pehle se close ho chuka hai.");
+            throw new IllegalStateException("Ticket " + ticketId + " pehle se close hai.");
         }
-        this.exitTime = Objects.requireNonNull(exitTime, "Exit time null nahi ho sakta");
-        this.feeBreakdown = Objects.requireNonNull(feeBreakdown, "Fee breakdown null nahi ho sakta");
+        this.exitTime      = Objects.requireNonNull(exitTime, "Exit time null nahi ho sakta");
+        this.feeBreakdown  = Objects.requireNonNull(feeBreakdown, "Fee breakdown null nahi ho sakta");
         this.active = false;
     }
 
-    /**
-     * Gaadi garage me kitni der rahi (Duration).
-     */
+    // Gaadi kitni der ruki — entry se exit tak (ya abhi tak agar still active)
     public Duration getDuration() {
         LocalDateTime end = (exitTime != null) ? exitTime : LocalDateTime.now();
         return Duration.between(entryTime, end);
     }
 
-    public String getTicketId() {
-        return ticketId;
-    }
+    // --- Getters ---
 
-    public Vehicle getVehicle() {
-        return vehicle;
-    }
+    public String getTicketId()           { return ticketId; }
+    public Vehicle getVehicle()           { return vehicle; }
+    public ParkingSlot getSlot()          { return slot; }
+    public LocalDateTime getEntryTime()   { return entryTime; }
+    public LocalDateTime getExitTime()    { return exitTime; }
+    public FeeBreakdown getFeeBreakdown() { return feeBreakdown; }
+    public boolean isActive()             { return active; }
 
-    public ParkingSlot getSlot() {
-        return slot;
-    }
-
-    public LocalDateTime getEntryTime() {
-        return entryTime;
-    }
-
-    public LocalDateTime getExitTime() {
-        return exitTime;
-    }
-
-    public FeeBreakdown getFeeBreakdown() {
-        return feeBreakdown;
-    }
-
+    // Total bill (0 agar abhi checkout nahi hua)
     public double getTotalFee() {
         return feeBreakdown != null ? feeBreakdown.totalFee() : 0.0;
     }
 
-    public boolean isActive() {
-        return active;
-    }
-
     @Override
     public String toString() {
-        return String.format("Ticket #%s | %s | %s | In: %s | Status: %s",
-                ticketId, vehicle, slot.getId(), entryTime, active ? "ACTIVE" : "COMPLETED");
+        return String.format("Ticket #%s | %s | %s | In: %s | %s",
+                ticketId, vehicle, slot.getId(), entryTime,
+                active ? "ACTIVE" : "COMPLETED");
     }
 }

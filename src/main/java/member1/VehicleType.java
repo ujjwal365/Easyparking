@@ -4,36 +4,27 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * ============================================================================
- * MEMBER 1 (Backbone) - VehicleType Enum
- * ============================================================================
- * Centralized Vehicle Type & Compatibility Rules:
+ * VehicleType — Gaadi ke 4 types aur unki slot compatibility.
  *
- * 1. BIKE : Preferred = SMALL       | Compatible = SMALL, REGULAR, LARGE
- * 2. CAR  : Preferred = REGULAR     | Compatible = REGULAR, LARGE
- * 3. SUV  : Preferred = LARGE       | Compatible = LARGE (Sirf large me aayegi)
- * 4. EV   : Preferred = EV_CHARGING | Compatible = EV_CHARGING, REGULAR, LARGE
- *           (EV agar charging slot na mile toh regular slot me fallback karti hai)
- * ============================================================================
+ * BIKE → pehle SMALL me daalo, nahi mile toh REGULAR / LARGE me bhi fit
+ * CAR  → pehle REGULAR me, nahi mile toh LARGE me
+ * SUV  → sirf LARGE me aayegi
+ * EV   → pehle EV_CHARGING, nahi mile toh REGULAR / LARGE (fallback)
  */
 public enum VehicleType {
 
-    // 1. BIKE (Two-Wheeler)
     BIKE("Motorcycle / Bike",
          SlotType.SMALL,
          List.of(SlotType.SMALL, SlotType.REGULAR, SlotType.LARGE)),
 
-    // 2. CAR (Sedan / Hatchback)
     CAR("Sedan / Hatchback Car",
         SlotType.REGULAR,
         List.of(SlotType.REGULAR, SlotType.LARGE)),
 
-    // 3. SUV (Large Vehicle)
     SUV("SUV / Large Vehicle",
         SlotType.LARGE,
         List.of(SlotType.LARGE)),
 
-    // 4. EV (Electric Vehicle)
     EV("Electric Vehicle (EV)",
        SlotType.EV_CHARGING,
        List.of(SlotType.EV_CHARGING, SlotType.REGULAR, SlotType.LARGE));
@@ -48,31 +39,16 @@ public enum VehicleType {
         this.compatibleSlots = compatibleSlots;
     }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getDescription()         { return description; }
+    public SlotType getPreferredSlotType()  { return preferredSlotType; }
+    public List<SlotType> getCompatibleSlots() { return Collections.unmodifiableList(compatibleSlots); }
 
-    public SlotType getPreferredSlotType() {
-        return preferredSlotType;
-    }
-
-    public List<SlotType> getCompatibleSlots() {
-        return Collections.unmodifiableList(compatibleSlots);
-    }
-
-    /**
-     * Check karta hai ki kya yeh slot type is gaadi ke liye compatible hai.
-     */
+    // Kya yeh slot type is gaadi ke liye chalega?
     public boolean isCompatibleWith(SlotType slotType) {
-        if (slotType == null) {
-            return false;
-        }
-        return compatibleSlots.contains(slotType);
+        return slotType != null && compatibleSlots.contains(slotType);
     }
 
-    /**
-     * Check karta hai ki kya gaadi fallback slot me hai (preferred slot nahi mila).
-     */
+    // Kya gaadi apne preferred slot ke bajay kisi aur (fallback) me hai?
     public boolean isFallback(SlotType slotType) {
         return slotType != preferredSlotType;
     }

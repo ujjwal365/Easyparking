@@ -1,50 +1,36 @@
 package member1;
 
 /**
- * ============================================================================
- * MEMBER 1 (Backbone) - GarageSummary Record (Java 17)
- * ============================================================================
- * Garage ki poori state ka ek read-only snapshot.
- * Java 17 ka `record` use kiya hai — automatically equals, hashCode, toString banata hai.
+ * GarageSummary — Garage ki poori state ek snapshot me (Java 17 record).
  *
- * Dashboard ya viva ke liye ek call me sab stats mil jaate hain:
+ * Usage:
  *   GarageSummary s = garage.getSummarySnapshot();
- *   System.out.println(s.occupancyRate());   // e.g., 30.0%
- *   System.out.println(s.peakOccupancy());   // e.g., 15
+ *   s.activeVehicles()   → kitni gaadiyaan andar hain
+ *   s.occupancyRate()    → kitna % bhara hai
+ *   s.peakOccupancy()    → ek saath max kitni gaadiyaan thi
  *
- * FIELDS:
- *   totalCapacity        : Garage me total kitne parking bays hain
- *   activeVehicles       : Abhi kitni gaadiyaan parked hain
- *   availableSlots       : Kitne slots khali hain (park ke liye ready)
- *   occupancyRate        : Kitna percent bhara hai (0.0 to 100.0)
- *   totalRevenue         : Ab tak ki total kamaai (₹)
- *   totalCompletedSessions : Kitni gaadiyaan exit karke jaa chuki hain
- *   peakOccupancy        : Ek saath maximum kitni gaadiyaan thi (high watermark)
- * ============================================================================
+ * Record automatically equals(), hashCode(), toString() bana deta hai.
  */
 public record GarageSummary(
-        int totalCapacity,
-        int activeVehicles,
-        int availableSlots,
-        double occupancyRate,
-        double totalRevenue,
-        int totalCompletedSessions,
-        int peakOccupancy
+        int totalCapacity,          // total parking bays
+        int activeVehicles,         // abhi kitni gaadiyaan andar
+        int availableSlots,         // kitne slots khali
+        double occupancyRate,       // % filled (0.0 - 100.0)
+        double totalRevenue,        // total kamaai (₹)
+        int totalCompletedSessions, // kitni gaadiyaan exit ho chuki
+        int peakOccupancy           // max gaadiyaan ek saath (record)
 ) {
-    /**
-     * Readable summary string for logging aur display ke liye.
-     * Default toString() record ka raw format deta hai, yeh pretty hai.
-     */
+    // Readable format for printing
     public String toPrettyString() {
         return String.format(
                 "=== Garage Summary ===%n" +
-                "Total Capacity       : %d%n" +
-                "Active Vehicles      : %d%n" +
-                "Available Slots      : %d%n" +
-                "Occupancy Rate       : %.1f%%%n" +
-                "Total Revenue        : ₹%.2f%n" +
-                "Completed Sessions   : %d%n" +
-                "Peak Occupancy       : %d",
+                "Capacity     : %d%n" +
+                "Active       : %d%n" +
+                "Available    : %d%n" +
+                "Occupancy    : %.1f%%%n" +
+                "Revenue      : ₹%.2f%n" +
+                "Completed    : %d%n" +
+                "Peak         : %d",
                 totalCapacity, activeVehicles, availableSlots,
                 occupancyRate, totalRevenue, totalCompletedSessions, peakOccupancy
         );
