@@ -16,25 +16,11 @@
 
 ---
 
-## 📌 Project Overview / प्रोजेक्ट अवलोकन
+## 📌 Project Overview 
 
 The **Smart Parking Garage** is a console-based multi-storey vehicle parking management system. It models an intelligent commercial parking building with 3 floors and 10 parking slots per floor (expandable). 
 
 The garage accepts four types of vehicles (**BIKE, CAR, SUV, EV**) and automatically routes them to the **nearest free and compatible slot relative to the garage exit (Floor 0, Slot 0)** using a specialized distance-penalty algorithm. It also features automatic tariff computation with a 30-minute grace period, hourly ceiling rounding, daily caps, and EV charging station billing.
-
----
-
-## 👥 Three-Member Student Ownership / छात्रों का कार्य विभाजन
-
-This project is divided cleanly among 3 students so each person can present and defend their individual module:
-
-| Student Role | Domain | Responsibilities & Files Owned |
-| :--- | :--- | :--- |
-| **Member 1 (Backbone)** | **Data Architecture & Garage State** | `member1/VehicleType.java`, `member1/SlotType.java`, `member1/Vehicle.java`, `member1/ParkingSlot.java`, `member1/Ticket.java`, `member1/ParkingGarage.java` |
-| **Member 2 (Brain)** | **Algorithms & Pricing Logic** | `member2/SlotAllocator.java`, `member2/FeeCalculator.java`, `member2/FeeBreakdown.java` |
-| **Member 3 (Face)** | **UI, Validation, Exceptions & QA** | `member3/GaragePrinter.java`, `member3/Main.java`, `member3/InputValidator.java`, `member3/*Exception.java`, all Unit Tests (`src/test/java/garage/*Test.java`), `README.md`, `DEMO_SCRIPT.md` |
-
-*(Every file contains bilingual English & Hindi comments explaining how and why each component works).*
 
 ---
 
@@ -74,7 +60,7 @@ This project is divided cleanly among 3 students so each person can present and 
 
 ---
 
-## 🚀 How to Run the Project / प्रोजेक्ट कैसे चलाएं
+## 🚀 How to Run the Project 
 
 ### Prerequisites
 - **Java 17+** (JDK 17 or higher)
