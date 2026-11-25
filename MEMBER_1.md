@@ -3,14 +3,10 @@
 > **Student Role:** Member 1  
 > **Domain:** Data Architecture, Model Classes & Garage State Coordinator  
 > **Project:** Smart Parking Garage (Multi-Storey Automated Car Parking System)  
-> **Language:** Java 17 (Maven)
 
 ---
 
-## 📌 Member 1 Ka Kaam Kya Hai? (Role Overview in Hinglish)
-
-Aap is project ke **Backbone** hain!
-Aapka main kaam garage ki building ka data structure design karna hai:
+##  (Role Overview in Hinglish)
 1. **Model Classes**: Garage ke building blocks (Vehicle, Slot, Ticket, Enums).
 2. **2D Array Grid (`ParkingSlot[3][10]`)**: 3 floors aur har floor par 10 parking slots ka layout banana.
 3. **`HashMap<String, Ticket>`**: Active gaadiyon ko instant $O(1)$ speed me dhoondhna.
@@ -19,11 +15,7 @@ Aapka main kaam garage ki building ka data structure design karna hai:
 
 ---
 
-## 📁 Member 1 Ki Coding Files (Full Source Code)
-
-Aapne is project ke liye yeh **6 core classes** banayi hain. Niche har file ka poora code diya gaya hai taaki aap direct yahi se dekh kar viva me explain kar sakein:
-
----
+## 📁 Member 1
 
 ### 1. `SlotType.java`
 **Location:** `src/main/java/member1/SlotType.java`  
@@ -702,23 +694,4 @@ public class ParkingGarage {
 }
 ```
 
----
 
-## ❓ Member 1 Ke Top 5 Viva Questions & Simple Hinglish Answers
-
-### Q1: Aapne garage ke liye 2D Array kyu use kiya?
-> **Answer:** Sir, multi-storey garage me floors aur slots hote hain. 2D Array `grid[floor][slot]` naturally building ke floors aur bays ko represent karta hai aur direct coordinate access deta hai.
-
-### Q2: `HashMap` aur `ArrayList` dono ka use kyu kiya?
-> **Answer:** 
-> - **`HashMap`**: Number plate se active gaadi ko $O(1)$ instant speed me dhoondhne ke liye.
-> - **`ArrayList`**: Completed tickets ka sequential audit trail maintain karne ke liye.
-
-### Q3: Duplicate gaadi ko enter hone se kaise roka?
-> **Answer:** `parkVehicle()` method me check hota hai: `if (activeTickets.containsKey(plate))`. Agar plate pehle se active ho, toh `DuplicateVehicleException` throw kar di jaati hai.
-
-### Q4: Vehicle aur Slot ki compatibility kahan define hai?
-> **Answer:** `VehicleType.java` enum ke andar methods `isCompatibleWith()` aur `getCompatibleSlots()` me centralized hai.
-
-### Q5: `exitVehicle()` me kya flow follow hota hai?
-> **Answer:** Active ticket dhoondhna -> FeeCalculator se fee calculate karna -> Slot vacate karna -> Ticket complete karna -> History me add karna -> HashMap se remove karna -> Revenue update karna.
