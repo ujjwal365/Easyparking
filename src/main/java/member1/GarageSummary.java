@@ -1,26 +1,23 @@
 package member1;
 
 /**
- * GarageSummary — Garage ki poori state ek snapshot me (Java 17 record).
+ * GarageSummary — Poore garage ke live stats ka ek compact snapshot (Java 17 Record).
  *
- * Usage:
- *   GarageSummary s = garage.getSummarySnapshot();
- *   s.activeVehicles()   → kitni gaadiyaan andar hain
- *   s.occupancyRate()    → kitna % bhara hai
- *   s.peakOccupancy()    → ek saath max kitni gaadiyaan thi
- *
- * Record automatically equals(), hashCode(), toString() bana deta hai.
+ * WHY JAVA RECORD (Normal class ki jagah `record` kyu use kiya?):
+ *   Record ek read-only data holder hai. Yeh apne aap constructor, getters, equals(), hashCode(),
+ *   aur toString() bana deta hai — bina lamba boilerplate code likhe!
+ *   Isse dashboard ya summary report ko ek hi function call me saara data mil jaata hai.
  */
 public record GarageSummary(
-        int totalCapacity,          // total parking bays
-        int activeVehicles,         // abhi kitni gaadiyaan andar
-        int availableSlots,         // kitne slots khali
-        double occupancyRate,       // % filled (0.0 - 100.0)
-        double totalRevenue,        // total kamaai (₹)
-        int totalCompletedSessions, // kitni gaadiyaan exit ho chuki
-        int peakOccupancy           // max gaadiyaan ek saath (record)
+        int totalCapacity,          // Garage me kul parking bays
+        int activeVehicles,         // Abhi andar kitni gaadiyaan khadi hain
+        int availableSlots,         // Abhi kitne bays khaali hain
+        double occupancyRate,       // Garage kitna % bhara hai (0.0 - 100.0)
+        double totalRevenue,        // Ab tak ki kul kamaai (₹)
+        int totalCompletedSessions, // Kitni gaadiyaan checkout kar chuki hain
+        int peakOccupancy           // Ek saath maximum kitni gaadiyaan park hui thi
 ) {
-    // Readable format for printing
+    // WHY THIS FUNCTION: Saare stats ko ek sundar multi-line summary text me format karke print karne ke liye.
     public String toPrettyString() {
         return String.format(
                 "=== Garage Summary ===%n" +

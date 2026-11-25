@@ -11,100 +11,129 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Set;
 
 /**
- * ParkingGarage — Smart Parking Garage ka main controller.
+ * ParkingGarage — Poore Smart Parking Garage ka main coordinator (Member 1 - Backbone).
  *
- * Data Structures:
- *   grid[][]       → 2D array (floors x slots), multi-storey layout
- *   activeTickets  → HashMap<plate, ticket> for O(1) lookup
- *   ticketHistory  → list of completed sessions (audit trail)
+ * YAHAN KAUNSE DATA STRUCTURES USE KIYE HAIN AUR KYU (Viva Quick Guide):
  *
- * Logic split:
- *   Slot allocation → Member 2 (SlotAllocator)
- *   Fee calculation → Member 2 (FeeCalculator)
- *   Validation / UI → Member 3
+ *   1. 2D Array (`ParkingSlot[][] grid`):
+ *      - WHY: Garage ke floors (rows) aur slots (columns) fixed size ke hote hain (3 floors x 10 bays).
+ *        `grid[floor][slot]` se kisi bhi physical bay par instant direct access milta hai.
+ *
+ *   2. HashMap (`HashMap<String, Ticket> activeTickets`):
+ *      - WHY: Key = License Plate (e.g. "MH12AB1234"), Value = Active Ticket.
+ *        Gaadi exit karte waqt, locate karte waqt, ya duplicate check karte waqt
+ *        poore 30 slots me loop lagane ke bajay instant O(1) speed me ticket mil jaata hai!
+ *
+ *   3. ArrayList (`ArrayList<Ticket> ticketHistory`):
+ *      - WHY: Completed parking tickets ko exact order (chronological history) me store karne ke liye.
+ *        ArrayList ka size dynamically badhta hai, aur agar same gaadi din me 2 baar aaye toh
+ *        dono baar ka alag ticket record save hota hai (ArrayList duplicates allow karta hai).
+ *
+ *   4. Set / HashSet (`Set<String> uniqueVisitors`):
+ *      - WHY: Garage me ab tak kitni ALAG-ALAG (unique) gaadiyaan aayi hain yeh ginne ke liye.
+ *        Set kabhi duplicate store nahi karta — agar ek car 3 baar bhi visit kare, Set me sirf 1 baar rahegi!
  */
 public class ParkingGarage {
 
     public static final int DEFAULT_FLOORS = 3;
     public static final int DEFAULT_SLOTS_PER_FLOOR = 10;
 
-    // --- Storage ---
+    // 1. 2D Array -> Garage ka physical layout (Floor x Slot)
     private final ParkingSlot[][] grid;
-    private final Map<String, Ticket> activeTickets;
-    private final List<Ticket> ticketHistory;
 
-    // --- Helpers (Member 2) ---
+    // 2. HashMap -> Abhi andar khadi gaadiyon ka O(1) instant record (Plate -> Ticket)
+    private final HashMap<String, Ticket> activeTickets;
+
+    // 3. ArrayList -> Checkout ho chuki gaadiyon ka ordered audit history
+    private final ArrayList<Ticket> ticketHistory;
+
+    // 4. Set (HashSet) -> Ab tak visit karne wali unique number plates (no duplicates!)
+    private final Set<String> uniqueVisitors;
+
+    // Member 2 helpers (Slot allocation algorithm aur Fee billing rules)
     private final SlotAllocator slotAllocator;
     private final FeeCalculator feeCalculator;
 
-    // --- Counters ---
-    private final AtomicInteger ticketCounter = new AtomicInteger(1000);
+    // Simple counters
+    private int ticketCounter = 1000;
     private double totalRevenue = 0.0;
-    private int peakOccupancy = 0;    // ek saath max gaadiyaan (high watermark)
+    private int peakOccupancy = 0;
 
     // ===================== Constructors =====================
 
-    // Default: 3 floors x 10 slots = 30 bays
+    // WHY DEFAULT CONSTRUCTOR: Bina size bataye standard 3 floors x 10 slots = 30 bays ka garage banane ke liye.
     public ParkingGarage() {
         this(DEFAULT_FLOORS, DEFAULT_SLOTS_PER_FLOOR);
     }
 
-    // Custom size
+    // WHY PARAMETERIZED CONSTRUCTOR: Testing ya custom size (e.g. 5 floors x 20 slots) ke garage banane ke liye.
     public ParkingGarage(int totalFloors, int slotsPerFloor) {
         if (totalFloors <= 0 || slotsPerFloor <= 0) {
-            throw new IllegalArgumentException("Floors aur slots positive hone chahiye.");
+            throw new IllegalArgumentException("Floors aur slots positive numbers hone chahiye.");
         }
         this.grid = new ParkingSlot[totalFloors][slotsPerFloor];
         this.activeTickets = new HashMap<>();
         this.ticketHistory = new ArrayList<>();
+        this.uniqueVisitors = new HashSet<>();
         this.slotAllocator = new SlotAllocator();
         this.feeCalculator = new FeeCalculator();
+
         buildGrid(totalFloors, slotsPerFloor);
     }
 
-    // Grid banao — har slot ko uska type assign karo
+    // WHY THIS FUNCTION: 2D array ke har cell [floor][slot] me ek naya ParkingSlot object create karne ke liye.
     private void buildGrid(int floors, int slotsPerFloor) {
         for (int f = 0; f < floors; f++) {
             for (int s = 0; s < slotsPerFloor; s++) {
-                grid[f][s] = new ParkingSlot(f, s, determineSlotType(s));
+                SlotType type = determineSlotType(s);
+                grid[f][s] = new ParkingSlot(f, s, type);
             }
         }
     }
 
-    /**
-     * Slot index se type decide karo:
-     *   0-1 → SMALL (bikes)
-     *   2-6 → REGULAR (cars)
-     *   7   → LARGE (SUVs)
-     *   8-9 → EV_CHARGING
-     */
+    // WHY THIS FUNCTION: Slot number ke hisaab se har bay ka type decide karne ke liye:
+    //   Index 0, 1 -> SMALL (Bikes)
+    //   Index 2..6 -> REGULAR (Cars)
+    //   Index 7    -> LARGE (SUVs)
+    //   Index 8, 9 -> EV_CHARGING (Electric Vehicles)
     public static SlotType determineSlotType(int slotIndex) {
-        if (slotIndex <= 1)                      return SlotType.SMALL;
-        if (slotIndex >= 2 && slotIndex <= 6)    return SlotType.REGULAR;
-        if (slotIndex == 7)                      return SlotType.LARGE;
-        return SlotType.EV_CHARGING;
+        if (slotIndex == 0 || slotIndex == 1) {
+            return SlotType.SMALL;
+        } else if (slotIndex >= 2 && slotIndex <= 6) {
+            return SlotType.REGULAR;
+        } else if (slotIndex == 7) {
+            return SlotType.LARGE;
+        } else {
+            return SlotType.EV_CHARGING;
+        }
     }
 
-    // ===================== Park / Exit / Find =====================
+    // WHY THIS HELPER FUNCTION: Plate se spaces hatane aur CAPITAL letters karne ke liye,
+    // taaki exitVehicle() aur findVehicle() me same code repeat na ho aur HashMap key hamesha match kare.
+    private String normalizePlate(String licensePlate) {
+        if (licensePlate == null) {
+            throw new IllegalArgumentException("License plate null nahi ho sakti");
+        }
+        return licensePlate.replaceAll("\\s+", "").toUpperCase();
+    }
 
+    // ===================== Core Operations: Park / Exit / Find =====================
+
+    // WHY THIS OVERLOAD: Real parking ke waqt automatic current time (LocalDateTime.now()) use karne ke liye.
     public Ticket parkVehicle(Vehicle vehicle) throws DuplicateVehicleException, GarageFullException {
         return parkVehicle(vehicle, LocalDateTime.now());
     }
 
-    /**
-     * Gaadi park karo — 4 simple steps:
-     *  1. Check — plate pehle se toh nahi hai?
-     *  2. Find  — nearest compatible slot dhoondo (Member 2)
-     *  3. Park  — slot me gaadi daalo
-     *  4. Ticket — receipt banao, map me store karo
-     */
+    // WHY THIS FUNCTION: Gaadi ko garage me park karne ka poora 4-step workflow chalata hai
+    // (`synchronized` isliye hai taaki do threads ek saath same slot allocate na kar dein).
     public synchronized Ticket parkVehicle(Vehicle vehicle, LocalDateTime entryTime)
             throws DuplicateVehicleException, GarageFullException {
 
@@ -112,25 +141,28 @@ public class ParkingGarage {
         Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
         String plate = vehicle.getLicensePlate();
 
-        // 1. Duplicate check
+        // Step 1: HashMap se O(1) duplicate check — kya yeh gaadi pehle se andar hai?
         if (activeTickets.containsKey(plate)) {
             Ticket existing = activeTickets.get(plate);
             throw new DuplicateVehicleException(
                     plate + " already slot " + existing.getSlot().getId() + " me parked hai!");
         }
 
-        // 2. Best slot dhoondo
+        // Step 2: Member 2 ke SlotAllocator se exit gate ke sabse kareeb compatible free slot dhoondhna
         ParkingSlot bestSlot = slotAllocator.allocateSlot(grid, vehicle);
 
-        // 3. Slot me park karo
+        // Step 3: Us bay me gaadi park karke slot ko occupied mark karna
         bestSlot.park(vehicle);
 
-        // 4. Ticket banao aur map me daalo
-        String ticketId = "TKT-" + ticketCounter.incrementAndGet();
+        // Step 4: Naya Ticket banana, HashMap me save karna, aur Set me unique visitor record karna
+        ticketCounter++;
+        String ticketId = "TKT-" + ticketCounter;
         Ticket ticket = new Ticket(ticketId, vehicle, bestSlot, entryTime);
-        activeTickets.put(plate, ticket);
 
-        // Peak update — agar abhi sabse zyada gaadiyaan hain toh record karo
+        activeTickets.put(plate, ticket);   // HashMap: instant lookup ke liye
+        uniqueVisitors.add(plate);          // HashSet: duplicate plates apne aap ignore ho jayengi
+
+        // Step 5: Peak occupancy record update karna (agar abhi tak sabse zyada gaadiyaan andar hain)
         if (activeTickets.size() > peakOccupancy) {
             peakOccupancy = activeTickets.size();
         }
@@ -138,38 +170,31 @@ public class ParkingGarage {
         return ticket;
     }
 
+    // WHY THIS OVERLOAD: Real exit ke waqt automatic current time use karne ke liye.
     public Ticket exitVehicle(String licensePlate) throws VehicleNotFoundException {
         return exitVehicle(licensePlate, LocalDateTime.now());
     }
 
-    /**
-     * Gaadi bahar nikalo — 4 simple steps:
-     *  1. Find  — plate se ticket dhoondo
-     *  2. Bill  — fee calculate karo (Member 2)
-     *  3. Free  — slot khali karo
-     *  4. Close — ticket band karo, history me daalo, revenue jodo
-     */
+    // WHY THIS FUNCTION: Gaadi bahar nikalne ka 4-step checkout flow — bill banana, slot khali karna,
+    // HashMap se hatana aur ArrayList history me save karna.
     public synchronized Ticket exitVehicle(String licensePlate, LocalDateTime exitTime)
             throws VehicleNotFoundException {
 
-        if (licensePlate == null) {
-            throw new IllegalArgumentException("License plate null nahi ho sakti");
-        }
-        String plate = licensePlate.replaceAll("\\s+", "").toUpperCase();
+        String plate = normalizePlate(licensePlate);
 
-        // 1. Ticket dhoondo
+        // Step 1: HashMap se O(1) speed me active ticket nikalna
         Ticket ticket = activeTickets.get(plate);
         if (ticket == null) {
             throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi mili!");
         }
 
-        // 2. Bill calculate karo
+        // Step 2: Member 2 ke FeeCalculator se parking + EV charging bill nikalna
         FeeBreakdown fee = feeCalculator.calculateFee(ticket, exitTime);
 
-        // 3. Slot khali karo
+        // Step 3: Physical slot ko khali (vacate) karna taaki agli gaadi park ho sake
         ticket.getSlot().vacate();
 
-        // 4. Ticket close karo + revenue update
+        // Step 4: Ticket band karna, HashMap se hatana, ArrayList history me daalna, aur revenue jodna
         ticket.completeTicket(exitTime, fee);
         activeTickets.remove(plate);
         ticketHistory.add(ticket);
@@ -178,12 +203,9 @@ public class ParkingGarage {
         return ticket;
     }
 
-    // Plate se gaadi ka slot dhoondo
+    // WHY THIS FUNCTION: Valet lookup — number plate dalkar turant O(1) time me batata hai gaadi kis slot par hai.
     public ParkingSlot findVehicle(String licensePlate) throws VehicleNotFoundException {
-        if (licensePlate == null) {
-            throw new IllegalArgumentException("License plate null nahi ho sakti");
-        }
-        String plate = licensePlate.replaceAll("\\s+", "").toUpperCase();
+        String plate = normalizePlate(licensePlate);
         Ticket ticket = activeTickets.get(plate);
         if (ticket == null) {
             throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi hai!");
@@ -191,10 +213,11 @@ public class ParkingGarage {
         return ticket.getSlot();
     }
 
-    // Garage completely reset karo (sab clear)
+    // WHY THIS FUNCTION: Demo ya fresh start ke liye saare maps, lists, sets aur grid ko reset karna.
     public synchronized void reset() {
         activeTickets.clear();
         ticketHistory.clear();
+        uniqueVisitors.clear();
         totalRevenue = 0.0;
         peakOccupancy = 0;
         buildGrid(grid.length, grid[0].length);
@@ -202,6 +225,7 @@ public class ParkingGarage {
 
     // ===================== Basic Getters =====================
 
+    // WHY THESE GETTERS: UI, WebServer aur Tests safely garage ki dimensions, counts aur lists read kar sakein.
     public ParkingSlot[][] getGrid()         { return grid; }
     public int getTotalFloors()              { return grid.length; }
     public int getSlotsPerFloor()            { return grid[0].length; }
@@ -211,59 +235,129 @@ public class ParkingGarage {
     public boolean isFull()                  { return getActiveVehicleCount() >= getTotalCapacity(); }
     public boolean isEmpty()                 { return activeTickets.isEmpty(); }
     public double getTotalRevenue()          { return totalRevenue; }
-    public List<Ticket> getHistory()         { return Collections.unmodifiableList(ticketHistory); }
-    public Map<String, Ticket> getActiveTickets() { return Collections.unmodifiableMap(activeTickets); }
     public SlotAllocator getSlotAllocator()  { return slotAllocator; }
     public FeeCalculator getFeeCalculator()  { return feeCalculator; }
+    public int getPeakOccupancy()            { return peakOccupancy; }
 
-    // ===================== Analytics =====================
+    // unmodifiableList / unmodifiableMap isliye return karte hain taaki bahar se koi history ya activeTickets delete na kar sake.
+    public List<Ticket> getHistory()              { return Collections.unmodifiableList(ticketHistory); }
+    public Map<String, Ticket> getActiveTickets() { return Collections.unmodifiableMap(activeTickets); }
 
-    // Ek floor pe kitni gaadiyaan parked hain?
+    // ===================== Collections-Based Helpers (ArrayList, Set, HashMap) =====================
+
+    // WHY THIS FUNCTION & WHY ArrayList:
+    //   Saare available (khaali + maintenance-free) slots ki ordered list dene ke liye.
+    //   ArrayList isliye use kiya kyunki khaali slots ki ginti fix nahi hoti, dynamically grow hoti hai!
+    public ArrayList<ParkingSlot> getAvailableSlots() {
+        ArrayList<ParkingSlot> freeSlots = new ArrayList<>();
+        for (int f = 0; f < grid.length; f++) {
+            for (int s = 0; s < grid[f].length; s++) {
+                if (grid[f][s].isAvailable()) {
+                    freeSlots.add(grid[f][s]);
+                }
+            }
+        }
+        return freeSlots;
+    }
+
+    // WHY THIS FUNCTION & WHY Set (HashSet):
+    //   Abhi garage ke andar jitni gaadiyaan khadi hain unki unique license plates deta hai.
+    //   Set isliye use kiya kyunki har active gaadi ki plate unique hoti hai (no duplicates).
+    public Set<String> getActiveLicensePlates() {
+        return new HashSet<>(activeTickets.keySet());
+    }
+
+    // WHY THIS FUNCTION & WHY Set:
+    //   Ab tak garage me kitni alag-alag (unique) gaadiyaan park ho chuki hain unka set deta hai.
+    public Set<String> getUniqueVisitors() {
+        return Collections.unmodifiableSet(uniqueVisitors);
+    }
+
+    // WHY THIS FUNCTION: Unique visitors ki total ginti batata hai (e.g. 1 car 2 baar aayi toh bhi count 1 hi rahega).
+    public int getUniqueVisitorCount() {
+        return uniqueVisitors.size();
+    }
+
+    // WHY THIS FUNCTION & WHY Set (HashSet):
+    //   Jo slots abhi maintenance mode me band hain unke IDs (e.g. "F0-S03") ek Set me return karta hai.
+    public Set<String> getMaintenanceSlotIds() {
+        Set<String> maintenanceIds = new HashSet<>();
+        for (int f = 0; f < grid.length; f++) {
+            for (int s = 0; s < grid[f].length; s++) {
+                if (grid[f][s].isUnderMaintenance()) {
+                    maintenanceIds.add(grid[f][s].getId());
+                }
+            }
+        }
+        return maintenanceIds;
+    }
+
+    // WHY THIS FUNCTION & WHY HashMap:
+    //   Har VehicleType (BIKE, CAR, SUV, EV) ki kitni gaadiyaan abhi andar hain, uska summary HashMap deta hai.
+    //   HashMap isliye use kiya kyunki Key = VehicleType aur Value = Count pair banana sabse clean hota hai!
+    public HashMap<VehicleType, Integer> getActiveVehicleCountByType() {
+        HashMap<VehicleType, Integer> counts = new HashMap<>();
+        for (VehicleType type : VehicleType.values()) {
+            counts.put(type, 0);
+        }
+        for (Ticket ticket : activeTickets.values()) {
+            VehicleType type = ticket.getVehicle().getType();
+            counts.put(type, counts.get(type) + 1);
+        }
+        return counts;
+    }
+
+    // ===================== Analytics & Lookup Functions =====================
+
+    // WHY THIS FUNCTION: Floor-wise check karne ke liye ki kisi ek floor par kitni gaadiyaan parked hain.
     public int getOccupiedCountByFloor(int floor) {
         if (floor < 0 || floor >= grid.length) {
             throw new IllegalArgumentException("Invalid floor: " + floor);
         }
         int count = 0;
         for (ParkingSlot slot : grid[floor]) {
-            if (slot.isOccupied()) count++;
+            if (slot.isOccupied()) {
+                count++;
+            }
         }
         return count;
     }
 
-    // Ek vehicle type ki kitni gaadiyaan andar hain? (e.g. kitni bikes parked)
+    // WHY THIS FUNCTION: Kisi ek vehicle type (e.g. sirf EV ya sirf BIKE) ki active count nikalne ke liye.
     public int getActiveCountByType(VehicleType type) {
         Objects.requireNonNull(type, "VehicleType null nahi ho sakta");
         int count = 0;
-        for (Ticket t : activeTickets.values()) {
-            if (t.getVehicle().getType() == type) count++;
+        for (Ticket ticket : activeTickets.values()) {
+            if (ticket.getVehicle().getType() == type) {
+                count++;
+            }
         }
         return count;
     }
 
-    // Garage kitna % bhara hai? (0.0 to 100.0)
+    // WHY THIS FUNCTION: Garage kitna % bhara hua hai yeh calculate karta hai (0.0% se 100.0%).
     public double getOccupancyRate() {
         int total = getTotalCapacity();
-        return (total == 0) ? 0.0 : (double) activeTickets.size() / total * 100.0;
+        if (total == 0) {
+            return 0.0;
+        }
+        return (double) activeTickets.size() / total * 100.0;
     }
 
-    // ===================== Ticket Lookup =====================
-
-    // Ticket ID se dhoondo (e.g. "TKT-1001") — Optional return
+    // WHY THIS FUNCTION: Agar user plate ke bajay Ticket ID (e.g. "TKT-1001") se search kare toh ticket dhoondh sake.
     public Optional<Ticket> findTicketById(String ticketId) {
-        if (ticketId == null || ticketId.isBlank()) return Optional.empty();
-        return activeTickets.values().stream()
-                .filter(t -> t.getTicketId().equals(ticketId))
-                .findFirst();
+        if (ticketId == null || ticketId.isBlank()) {
+            return Optional.empty();
+        }
+        for (Ticket ticket : activeTickets.values()) {
+            if (ticket.getTicketId().equals(ticketId)) {
+                return Optional.of(ticket);
+            }
+        }
+        return Optional.empty();
     }
 
-    // ===================== Peak Tracker =====================
-
-    // Garage me ek saath max kitni gaadiyaan thi? (lifetime record)
-    public int getPeakOccupancy() { return peakOccupancy; }
-
-    // ===================== Summary Snapshot =====================
-
-    // Ek call me garage ki poori summary mil jaaye (dashboard ke liye)
+    // WHY THIS FUNCTION: Dashboard aur analytics ke liye saare key metrics ek hi GarageSummary record me dene ke liye.
     public GarageSummary getSummarySnapshot() {
         return new GarageSummary(
                 getTotalCapacity(),
