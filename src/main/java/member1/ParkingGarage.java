@@ -45,6 +45,7 @@ public class ParkingGarage {
 
     public static final int DEFAULT_FLOORS = 3;
     public static final int DEFAULT_SLOTS_PER_FLOOR = 10;
+    public static final double WRONG_SLOT_FINE = 150.0;
 
     // 1. 2D Array -> Garage ka physical layout (Floor x Slot)
     private final ParkingSlot[][] grid;
@@ -191,13 +192,60 @@ public class ParkingGarage {
         // Step 3: Physical slot ko khali (vacate) karna taaki agli gaadi park ho sake
         ticket.getSlot().vacate();
 
-        // Step 4: Ticket band karna, HashMap se hatana, ArrayList history me daalna, aur revenue jodna
+        // Step 4: Ticket band karna, HashMap se hatana, ArrayList history me daalna, aur revenue (fee + fine) jodna
         ticket.completeTicket(exitTime, fee);
         activeTickets.remove(plate);
         ticketHistory.add(ticket);
-        totalRevenue += fee.totalFee();
+        totalRevenue += ticket.getTotalFee();
 
         return ticket;
+    }
+
+    // WHY THIS FUNCTION: Agar driver assigned slot ke bajay kisi aur slot (jaise Car ko SUV/EV bay) me park kar de
+    // toh grid me actual slot update karke ₹150 wrong-slot violation fine lagane ke liye.
+    public synchronized Ticket reportWrongSlot(String licensePlate, String actualSlotId)
+            throws VehicleNotFoundException {
+        String plate = normalizePlate(licensePlate);
+        Ticket ticket = activeTickets.get(plate);
+        if (ticket == null) {
+            throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi mili!");
+        }
+
+        ParkingSlot actualSlot = findSlotById(actualSlotId)
+                .orElseThrow(() -> new IllegalArgumentException("Slot '" + actualSlotId + "' nahi mila!"));
+
+        ParkingSlot currentSlot = ticket.getSlot();
+        if (actualSlot.getId().equalsIgnoreCase(currentSlot.getId())) {
+            throw new IllegalArgumentException("Gaadi pehle se slot " + actualSlot.getId() + " me hi parked hai.");
+        }
+        if (!actualSlot.isAvailable()) {
+            throw new IllegalStateException("Slot " + actualSlot.getId() + " available nahi hai (occupied ya maintenance me hai).");
+        }
+
+        currentSlot.vacate();
+        actualSlot.park(ticket.getVehicle());
+
+        String reason = String.format("Parked in %s (%s) instead of assigned %s (%s)",
+                actualSlot.getId(), actualSlot.getSlotType().getDisplayName(),
+                ticket.getAssignedSlot().getId(), ticket.getAssignedSlot().getSlotType().getDisplayName());
+        ticket.reassignToWrongSlot(actualSlot, WRONG_SLOT_FINE, reason);
+        return ticket;
+    }
+
+    // WHY THIS FUNCTION: Slot ID (e.g. "F0-S08") se 2D grid me exact ParkingSlot object dhoondhne ke liye.
+    public Optional<ParkingSlot> findSlotById(String slotId) {
+        if (slotId == null || slotId.isBlank()) {
+            return Optional.empty();
+        }
+        String target = slotId.trim();
+        for (int f = 0; f < grid.length; f++) {
+            for (int s = 0; s < grid[f].length; s++) {
+                if (grid[f][s].getId().equalsIgnoreCase(target)) {
+                    return Optional.of(grid[f][s]);
+                }
+            }
+        }
+        return Optional.empty();
     }
 
     //Valet lookup — number plate dalkar turant O(1) time me batata hai gaadi kis slot par hai.

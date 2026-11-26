@@ -87,6 +87,7 @@ public class WebServer {
         server.createContext("/api/garage", new GarageStateApi());
         server.createContext("/api/park", new ParkVehicleApi());
         server.createContext("/api/exit", new ExitVehicleApi());
+        server.createContext("/api/wrong-slot", new WrongSlotApi());
         server.createContext("/api/find", new FindVehicleApi());
         server.createContext("/api/demo", new DemoApi());
         server.createContext("/api/reset", new ResetApi());
@@ -235,7 +236,7 @@ public class WebServer {
             // Revenue breakdown by vehicle type
             double bikeRev = 0.0, carRev = 0.0, suvRev = 0.0, evRev = 0.0;
             for (Ticket t : garage.getHistory()) {
-                double f = (t.getFeeBreakdown() != null) ? t.getFeeBreakdown().totalFee() : 0.0;
+                double f = t.getTotalFee();
                 switch (t.getVehicle().getType()) {
                     case BIKE -> bikeRev += f;
                     case CAR  -> carRev += f;
@@ -387,7 +388,7 @@ public class WebServer {
                 FeeBreakdown fee = ticket.getFeeBreakdown();
 
                 String res = String.format(Locale.US,
-                        "{\"success\":true,\"ticketId\":\"%s\",\"plate\":\"%s\",\"vehicleType\":\"%s\",\"slotId\":\"%s\",\"slotType\":\"%s\",\"entryTime\":\"%s\",\"exitTime\":\"%s\",\"totalMinutes\":%d,\"billableHours\":%d,\"parkingFee\":%.2f,\"chargingFee\":%.2f,\"totalFee\":%.2f,\"chargingApplied\":%b}",
+                        "{\"success\":true,\"ticketId\":\"%s\",\"plate\":\"%s\",\"vehicleType\":\"%s\",\"slotId\":\"%s\",\"slotType\":\"%s\",\"entryTime\":\"%s\",\"exitTime\":\"%s\",\"totalMinutes\":%d,\"billableHours\":%d,\"parkingFee\":%.2f,\"chargingFee\":%.2f,\"wrongSlotFine\":%.2f,\"wrongSlotReason\":%s,\"totalFee\":%.2f,\"chargingApplied\":%b}",
                         ticket.getTicketId(),
                         ticket.getVehicle().getLicensePlate(),
                         ticket.getVehicle().getType().name(),
@@ -399,9 +400,51 @@ public class WebServer {
                         fee.billableHours(),
                         fee.parkingFee(),
                         fee.chargingFee(),
-                        fee.totalFee(),
+                        ticket.getWrongSlotFine(),
+                        ticket.getWrongSlotReason() != null ? "\"" + escape(ticket.getWrongSlotReason()) + "\"" : "null",
+                        ticket.getTotalFee(),
                         fee.isChargingApplied());
 
+                sendJson(exchange, 200, res);
+
+            } catch (Exception e) {
+                String err = String.format("{\"success\":false,\"error\":\"%s\"}", escape(e.getMessage()));
+                sendJson(exchange, 400, err);
+            }
+        }
+    }
+
+    /**
+     * POST /api/wrong-slot -> body: {"plate": "...", "actualSlotId": "F0-S07"}
+     */
+    private class WrongSlotApi implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            if (handleOptions(exchange)) return;
+            if (!"POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+                sendJson(exchange, 405, "{\"success\":false,\"error\":\"Method Not Allowed\"}");
+                return;
+            }
+
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            String rawPlate = extractJsonValue(body, "plate");
+            String actualSlotId = extractJsonValue(body, "actualSlotId");
+
+            try {
+                String cleanPlate = InputValidator.validateAndNormalizePlate(rawPlate);
+                if (actualSlotId == null || actualSlotId.trim().isEmpty()) {
+                    throw new InvalidInputException("Actual slot ID dena zaroori hai (e.g. F0-S07).");
+                }
+
+                Ticket ticket = garage.reportWrongSlot(cleanPlate, actualSlotId.trim());
+                String res = String.format(Locale.US,
+                        "{\"success\":true,\"message\":\"Wrong-slot violation recorded & fine applied!\",\"ticketId\":\"%s\",\"plate\":\"%s\",\"assignedSlotId\":\"%s\",\"actualSlotId\":\"%s\",\"wrongSlotFine\":%.2f,\"reason\":\"%s\"}",
+                        ticket.getTicketId(),
+                        ticket.getVehicle().getLicensePlate(),
+                        ticket.getAssignedSlot().getId(),
+                        ticket.getSlot().getId(),
+                        ticket.getWrongSlotFine(),
+                        escape(ticket.getWrongSlotReason()));
                 sendJson(exchange, 200, res);
 
             } catch (Exception e) {

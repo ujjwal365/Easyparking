@@ -17,21 +17,40 @@ public class Ticket {
 
     private final String ticketId;          // Unique ID, jaise "TKT-1001"
     private final Vehicle vehicle;          // Kaunsi gaadi park hui
-    private final ParkingSlot slot;         // Kaunse bay me park hui
+    private final ParkingSlot assignedSlot; // System ne kaunsa bay assign kiya tha
+    private ParkingSlot slot;               // Gaadi actually kis bay me khadi hai
     private final LocalDateTime entryTime;  // Gaadi kab andar aayi
     private LocalDateTime exitTime;         // Gaadi kab bahar gayi (active hone par null)
     private FeeBreakdown feeBreakdown;      // Bill details (active hone par null)
+    private double wrongSlotFine;           // Galat slot me park karne ka fine (default 0.0)
+    private String wrongSlotReason;         // Fine lagne ka reason (agar laga ho)
     private boolean active;                 // true = gaadi andar hai, false = checkout complete
 
     // WHY CONSTRUCTOR: Jab gaadi park hoti hai tab naya active ticket create karne ke liye.
     public Ticket(String ticketId, Vehicle vehicle, ParkingSlot slot, LocalDateTime entryTime) {
-        this.ticketId     = Objects.requireNonNull(ticketId, "Ticket ID null nahi ho sakta");
-        this.vehicle      = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
-        this.slot         = Objects.requireNonNull(slot, "Slot null nahi ho sakta");
-        this.entryTime    = Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
-        this.exitTime     = null;
-        this.feeBreakdown = null;
-        this.active       = true;
+        this.ticketId        = Objects.requireNonNull(ticketId, "Ticket ID null nahi ho sakta");
+        this.vehicle         = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
+        this.assignedSlot    = Objects.requireNonNull(slot, "Slot null nahi ho sakta");
+        this.slot            = this.assignedSlot;
+        this.entryTime       = Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
+        this.exitTime        = null;
+        this.feeBreakdown    = null;
+        this.wrongSlotFine   = 0.0;
+        this.wrongSlotReason = null;
+        this.active          = true;
+    }
+
+    // WHY THIS FUNCTION: Agar driver assigned slot ke bajay kisi aur slot me gaadi park kar de toh actual slot update karke fine lagane ke liye.
+    public void reassignToWrongSlot(ParkingSlot actualSlot, double fineAmount, String reason) {
+        if (!this.active) {
+            throw new IllegalStateException("Closed ticket par wrong-slot fine nahi lagaya ja sakta.");
+        }
+        if (fineAmount < 0) {
+            throw new IllegalArgumentException("Fine amount negative nahi ho sakta.");
+        }
+        this.slot            = Objects.requireNonNull(actualSlot, "Actual slot null nahi ho sakta");
+        this.wrongSlotFine   = fineAmount;
+        this.wrongSlotReason = reason;
     }
 
     // WHY THIS FUNCTION: Checkout ke waqt ticket ko band karne, exit time aur bill store karne ke liye.
@@ -54,18 +73,22 @@ public class Ticket {
     // WHY THESE GETTERS: Doosre classes (FeeCalculator, Receipt Printer, WebServer) safely ticket details padh sakein.
     public String getTicketId()           { return ticketId; }
     public Vehicle getVehicle()           { return vehicle; }
+    public ParkingSlot getAssignedSlot()  { return assignedSlot; }
     public ParkingSlot getSlot()          { return slot; }
     public LocalDateTime getEntryTime()   { return entryTime; }
     public LocalDateTime getExitTime()    { return exitTime; }
     public FeeBreakdown getFeeBreakdown() { return feeBreakdown; }
+    public double getWrongSlotFine()      { return wrongSlotFine; }
+    public String getWrongSlotReason()    { return wrongSlotReason; }
+    public boolean hasWrongSlotFine()     { return wrongSlotFine > 0.0; }
     public boolean isActive()             { return active; }
 
-    // WHY THIS FUNCTION: Safely total fee deta hai; agar gaadi abhi exit nahi hui toh crash (NullPointer) ke bajay 0.0 deta hai.
+    // WHY THIS FUNCTION: Safely total fee (parking + EV charging + wrong-slot fine) deta hai.
     public double getTotalFee() {
         if (feeBreakdown == null) {
-            return 0.0;
+            return wrongSlotFine;
         }
-        return feeBreakdown.totalFee();
+        return feeBreakdown.totalFee() + wrongSlotFine;
     }
 
     // WHY OVERRIDE toString(): History list aur logs me ticket ko ek clean line me print karne ke liye.

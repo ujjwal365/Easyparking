@@ -162,4 +162,27 @@ class ParkingGarageTest {
         assertEquals(1, summary.peakOccupancy());
         assertEquals(30.0, summary.totalRevenue());
     }
+
+    @Test
+    @DisplayName("9. Galat slot me park karne par wrong-slot fine (₹150) aur actual slot update hona chahiye")
+    void testWrongSlotFine() throws Exception {
+        Vehicle car = new Vehicle("MH12AB1234", VehicleType.CAR);
+        Ticket ticket = garage.parkVehicle(car, baseTime);
+        assertEquals("F0-S02", ticket.getAssignedSlot().getId());
+
+        // Driver ne assigned F0-S02 ke bajay SUV slot F0-S07 me park kar diya
+        Ticket updated = garage.reportWrongSlot("MH12AB1234", "F0-S07");
+        assertEquals("F0-S02", updated.getAssignedSlot().getId());
+        assertEquals("F0-S07", updated.getSlot().getId());
+        assertFalse(garage.getGrid()[0][2].isOccupied(), "Purana assigned slot F0-S02 vacate hona chahiye");
+        assertTrue(garage.getGrid()[0][7].isOccupied(), "Actual slot F0-S07 occupied hona chahiye");
+        assertTrue(updated.hasWrongSlotFine());
+        assertEquals(ParkingGarage.WRONG_SLOT_FINE, updated.getWrongSlotFine());
+
+        // 2 ghante baad exit: Car fee (₹60) + Fine (₹150) = ₹210
+        Ticket closed = garage.exitVehicle("MH12AB1234", baseTime.plusHours(2));
+        assertEquals(210.0, closed.getTotalFee());
+        assertEquals(210.0, garage.getTotalRevenue());
+        assertFalse(garage.getGrid()[0][7].isOccupied(), "Exit par actual slot F0-S07 vacate hona chahiye");
+    }
 }
