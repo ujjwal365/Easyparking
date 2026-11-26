@@ -19,10 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * ParkingGarage — Poore Smart Parking Garage ka main coordinator (Member 1 - Backbone).
- *
- * YAHAN KAUNSE DATA STRUCTURES USE KIYE HAIN AUR KYU (Viva Quick Guide):
- *
+ParkingGarage — Poore Smart Parking Garage ka main coordinator (Member 1 - Backbone).
+
+ YAHAN KAUNSE DATA STRUCTURES USE KIYE HAIN AUR KYU (Viva Quick Guide):
+ 
  *   1. 2D Array (`ParkingSlot[][] grid`):
  *      - WHY: Garage ke floors (rows) aur slots (columns) fixed size ke hote hain (3 floors x 10 bays).
  *        `grid[floor][slot]` se kisi bhi physical bay par instant direct access milta hai.
@@ -99,7 +99,7 @@ public class ParkingGarage {
         }
     }
 
-    // WHY THIS FUNCTION: Slot number ke hisaab se har bay ka type decide karne ke liye:
+    //Slot number ke hisaab se har bay ka type decide karne ke liye:
     //   Index 0, 1 -> SMALL (Bikes)
     //   Index 2..6 -> REGULAR (Cars)
     //   Index 7    -> LARGE (SUVs)
@@ -116,7 +116,7 @@ public class ParkingGarage {
         }
     }
 
-    // WHY THIS HELPER FUNCTION: Plate se spaces hatane aur CAPITAL letters karne ke liye,
+    //Plate se spaces hatane aur CAPITAL letters karne ke liye,
     // taaki exitVehicle() aur findVehicle() me same code repeat na ho aur HashMap key hamesha match kare.
     private String normalizePlate(String licensePlate) {
         if (licensePlate == null) {
@@ -124,15 +124,12 @@ public class ParkingGarage {
         }
         return licensePlate.replaceAll("\\s+", "").toUpperCase();
     }
-
-    // ===================== Core Operations: Park / Exit / Find =====================
-
-    // WHY THIS OVERLOAD: Real parking ke waqt automatic current time (LocalDateTime.now()) use karne ke liye.
+    //Real parking ke waqt automatic current time (LocalDateTime.now()) use karne ke liye.
     public Ticket parkVehicle(Vehicle vehicle) throws DuplicateVehicleException, GarageFullException {
         return parkVehicle(vehicle, LocalDateTime.now());
     }
 
-    // WHY THIS FUNCTION: Gaadi ko garage me park karne ka poora 4-step workflow chalata hai
+    // Gaadi ko garage me park karne ka poora 4-step workflow chalata hai
     // (`synchronized` isliye hai taaki do threads ek saath same slot allocate na kar dein).
     public synchronized Ticket parkVehicle(Vehicle vehicle, LocalDateTime entryTime)
             throws DuplicateVehicleException, GarageFullException {
@@ -170,12 +167,12 @@ public class ParkingGarage {
         return ticket;
     }
 
-    // WHY THIS OVERLOAD: Real exit ke waqt automatic current time use karne ke liye.
+    //Real exit ke waqt automatic current time use karne ke liye.
     public Ticket exitVehicle(String licensePlate) throws VehicleNotFoundException {
         return exitVehicle(licensePlate, LocalDateTime.now());
     }
 
-    // WHY THIS FUNCTION: Gaadi bahar nikalne ka 4-step checkout flow — bill banana, slot khali karna,
+    //Gaadi bahar nikalne ka 4-step checkout flow — bill banana, slot khali karna,
     // HashMap se hatana aur ArrayList history me save karna.
     public synchronized Ticket exitVehicle(String licensePlate, LocalDateTime exitTime)
             throws VehicleNotFoundException {
@@ -203,7 +200,7 @@ public class ParkingGarage {
         return ticket;
     }
 
-    // WHY THIS FUNCTION: Valet lookup — number plate dalkar turant O(1) time me batata hai gaadi kis slot par hai.
+    //Valet lookup — number plate dalkar turant O(1) time me batata hai gaadi kis slot par hai.
     public ParkingSlot findVehicle(String licensePlate) throws VehicleNotFoundException {
         String plate = normalizePlate(licensePlate);
         Ticket ticket = activeTickets.get(plate);
@@ -213,7 +210,7 @@ public class ParkingGarage {
         return ticket.getSlot();
     }
 
-    // WHY THIS FUNCTION: Demo ya fresh start ke liye saare maps, lists, sets aur grid ko reset karna.
+    // Demo ya fresh start ke liye saare maps, lists, sets aur grid ko reset karna.
     public synchronized void reset() {
         activeTickets.clear();
         ticketHistory.clear();
@@ -223,16 +220,14 @@ public class ParkingGarage {
         buildGrid(grid.length, grid[0].length);
     }
 
-    // ===================== Basic Getters =====================
-
-    // WHY THESE GETTERS: UI, WebServer aur Tests safely garage ki dimensions, counts aur lists read kar sakein.
+    //UI, WebServer aur Tests safely garage ki dimensions, counts aur lists read kar sakein.
     public ParkingSlot[][] getGrid()         { return grid; }
     public int getTotalFloors()              { return grid.length; }
     public int getSlotsPerFloor()            { return grid[0].length; }
     public int getTotalCapacity()            { return grid.length * grid[0].length; }
     public int getActiveVehicleCount()       { return activeTickets.size(); }
-    public int getAvailableSlotsCount()      { return getTotalCapacity() - getActiveVehicleCount(); }
-    public boolean isFull()                  { return getActiveVehicleCount() >= getTotalCapacity(); }
+    public int getAvailableSlotsCount()      { return getAvailableSlots().size(); }
+    public boolean isFull()                  { return getAvailableSlots().isEmpty(); }
     public boolean isEmpty()                 { return activeTickets.isEmpty(); }
     public double getTotalRevenue()          { return totalRevenue; }
     public SlotAllocator getSlotAllocator()  { return slotAllocator; }
@@ -243,9 +238,6 @@ public class ParkingGarage {
     public List<Ticket> getHistory()              { return Collections.unmodifiableList(ticketHistory); }
     public Map<String, Ticket> getActiveTickets() { return Collections.unmodifiableMap(activeTickets); }
 
-    // ===================== Collections-Based Helpers (ArrayList, Set, HashMap) =====================
-
-    // WHY THIS FUNCTION & WHY ArrayList:
     //   Saare available (khaali + maintenance-free) slots ki ordered list dene ke liye.
     //   ArrayList isliye use kiya kyunki khaali slots ki ginti fix nahi hoti, dynamically grow hoti hai!
     public ArrayList<ParkingSlot> getAvailableSlots() {
@@ -307,7 +299,7 @@ public class ParkingGarage {
         return counts;
     }
 
-    // ===================== Analytics & Lookup Functions =====================
+
 
     // WHY THIS FUNCTION: Floor-wise check karne ke liye ki kisi ek floor par kitni gaadiyaan parked hain.
     public int getOccupiedCountByFloor(int floor) {

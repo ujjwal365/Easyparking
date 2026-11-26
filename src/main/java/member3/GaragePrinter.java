@@ -54,7 +54,7 @@ public class GaragePrinter {
         printHeader("SMART PARKING GARAGE - LIVE 2D FLOOR MAP");
         System.out.printf("  Total Floors: %d | Bays per Floor: %d | Total Capacity: %d | Active: %d | Free: %d%n",
                 floors, slotsPerFloor, garage.getTotalCapacity(),
-                garage.getActiveVehicleCount(), (garage.getTotalCapacity() - garage.getActiveVehicleCount()));
+                garage.getActiveVehicleCount(), garage.getAvailableSlotsCount());
         System.out.println("  Exit Location: [Floor 0, Slot 0] (Ground Level Ramp)");
         System.out.println("=".repeat(75));
 

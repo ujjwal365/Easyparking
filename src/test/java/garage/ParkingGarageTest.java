@@ -1,5 +1,6 @@
 package garage;
 
+import member1.GarageSummary;
 import member1.ParkingGarage;
 import member1.ParkingSlot;
 import member1.Ticket;
@@ -132,5 +133,33 @@ class ParkingGarageTest {
         // Car 3 ghante baad gayi: 3 * ₹30 = ₹90
         garage.exitVehicle("DL01CR2222", baseTime.plusHours(3));
         assertEquals(100.0, garage.getTotalRevenue(), "Total revenue ₹10 + ₹90 = ₹100 hona chahiye");
+    }
+
+    @Test
+    @DisplayName("8. Collections, Analytics, Maintenance, Ticket ID lookup aur GarageSummary sahi kaam karein")
+    void testAnalyticsAndSummary() throws Exception {
+        garage.getGrid()[0][2].setUnderMaintenance(true);
+        assertTrue(garage.getMaintenanceSlotIds().contains("F0-S02"));
+        assertEquals(29, garage.getAvailableSlotsCount());
+
+        Vehicle car1 = new Vehicle("MH12AB1234", VehicleType.CAR);
+        Ticket t1 = garage.parkVehicle(car1, baseTime);
+
+        assertEquals("F0-S03", t1.getSlot().getId());
+        assertTrue(garage.findTicketById(t1.getTicketId()).isPresent());
+        assertEquals(1, garage.getActiveVehicleCountByType().get(VehicleType.CAR));
+        assertTrue(garage.getActiveLicensePlates().contains("MH12AB1234"));
+
+        // Same car exits and enters again -> 1 unique visitor, 1 completed history
+        garage.exitVehicle("MH12AB1234", baseTime.plusHours(1));
+        garage.parkVehicle(new Vehicle("MH12AB1234", VehicleType.CAR), baseTime.plusHours(2));
+
+        GarageSummary summary = garage.getSummarySnapshot();
+        assertEquals(30, summary.totalCapacity());
+        assertEquals(1, summary.activeVehicles());
+        assertEquals(1, garage.getUniqueVisitorCount());
+        assertEquals(1, summary.totalCompletedSessions());
+        assertEquals(1, summary.peakOccupancy());
+        assertEquals(30.0, summary.totalRevenue());
     }
 }

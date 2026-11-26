@@ -7,6 +7,32 @@ import member1.VehicleType;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+/**
+ * ============================================================================
+ * MEMBER 2 (Brain) - FeeCalculator Class
+ * ============================================================================
+ * Yeh class parking fees calculate karne ka poora business logic hai.
+ * 
+ * BUSINESS RULES:
+ * 1. Grace Period: Pehle 30 minute bilkul FREE hain (<= 30 mins -> ₹0.00).
+ * 2. Hourly Rounding: 30 minute ke baad har shuru hue ghante ka poora paisa
+ *    lagta hai using Math.ceil (e.g. 31 min -> 1 hr, 65 min -> 2 hrs).
+ * 3. Hourly Rates:
+ *    - BIKE: ₹10/hr
+ *    - CAR : ₹30/hr
+ *    - SUV : ₹50/hr
+ *    - EV  : ₹40/hr
+ * 4. 24-Hour Daily Cap (Multi-day stays par apply hota hai):
+ *    - BIKE: ₹80/day
+ *    - CAR : ₹250/day
+ *    - SUV : ₹400/day
+ *    - EV  : ₹350/day (charging chhod kar)
+ * 5. EV Charging Fees:
+ *    - Flat ₹60 connection fee + ₹15 per billable hour.
+ *    - Yeh sirf tab lagti hai jab EV ko EV_CHARGING slot mila ho.
+ *    - Agar EV regular slot me park hui hai toh charging fee ₹0 hoti hai!
+ * ============================================================================
+ */
 public class FeeCalculator {
 
     public static final long FREE_GRACE_PERIOD_MINUTES = 30;

@@ -2,10 +2,8 @@ package member1;
 
 /**
  * GarageSummary — Poore garage ke live stats ka ek compact snapshot (Java 17 Record).
- *
  * WHY JAVA RECORD (Normal class ki jagah `record` kyu use kiya?):
  *   Record ek read-only data holder hai. Yeh apne aap constructor, getters, equals(), hashCode(),
- *   aur toString() bana deta hai — bina lamba boilerplate code likhe!
  *   Isse dashboard ya summary report ko ek hi function call me saara data mil jaata hai.
  */
 public record GarageSummary(
@@ -17,7 +15,7 @@ public record GarageSummary(
         int totalCompletedSessions, // Kitni gaadiyaan checkout kar chuki hain
         int peakOccupancy           // Ek saath maximum kitni gaadiyaan park hui thi
 ) {
-    // WHY THIS FUNCTION: Saare stats ko ek sundar multi-line summary text me format karke print karne ke liye.
+    //Saare stats ko ek multi-line summary text me format karke print karne ke liye.
     public String toPrettyString() {
         return String.format(
                 "=== Garage Summary ===%n" +

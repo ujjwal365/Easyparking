@@ -29,9 +29,3 @@ target/
 .DS_Store
 Thumbs.db
 0.26.0
-
-# Exclude Member 2 and Member 3 code files
-src/main/java/member2/
-src/main/java/member3/
-src/test/java/garage/FeeCalculatorTest.java
-src/test/java/garage/SlotAllocatorTest.java

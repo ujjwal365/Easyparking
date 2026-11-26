@@ -33,21 +33,63 @@ public class Main {
 
     private final ParkingGarage garage;
     private final Scanner scanner;
+    private final WebServer webServer;
 
     public Main() {
         this.garage = new ParkingGarage();
         this.scanner = new Scanner(System.in);
+        this.webServer = new WebServer(this.garage);
     }
 
     public static void main(String[] args) {
         Main app = new Main();
 
-        if (args.length > 0 && "--demo".equalsIgnoreCase(args[0])) {
-            app.runScriptedDemo();
-            return;
+        if (args.length > 0) {
+            if ("--demo".equalsIgnoreCase(args[0])) {
+                app.runScriptedDemo();
+                return;
+            } else if ("--web".equalsIgnoreCase(args[0])) {
+                app.startWebOnly();
+                return;
+            } else if ("--verify".equalsIgnoreCase(args[0])) {
+                SystemVerifier.main(args);
+                return;
+            }
         }
 
+        app.ensureWebServerStarted();
         app.runMenuLoop();
+    }
+
+    private void ensureWebServerStarted() {
+        try {
+            if (this.webServer.getPort() == 0) {
+                this.webServer.start();
+            }
+        } catch (Exception e) {
+            System.err.println("[WEB SERVER WARNING] Dashboard start nahi ho paya: " + e.getMessage());
+        }
+    }
+
+    public void startWebOnly() {
+        ensureWebServerStarted();
+        if (webServer.getPort() == 0) {
+            System.err.println("[ERROR] Web dashboard start nahi ho saka. Kripya port availability aur permissions check karein.");
+            return;
+        }
+        System.out.println("=".repeat(75));
+        System.out.println("          🌐 SMART PARKING GARAGE - WEB DASHBOARD MODE 🌐");
+        System.out.println("=".repeat(75));
+        System.out.printf("  Live Web Dashboard: %s%n", webServer.getUrl());
+        System.out.println("  Browser automatically open ho raha hai...");
+        System.out.println("  Band karne ke liye console me 'Ctrl + C' dabayein.");
+        System.out.println("=".repeat(75));
+        webServer.openInBrowser();
+
+        try {
+            Thread.currentThread().join();
+        } catch (InterruptedException ignored) {
+        }
     }
 
     public void runMenuLoop() {
@@ -55,15 +97,19 @@ public class Main {
         System.out.println("      WELCOME TO SMART PARKING GARAGE MANAGEMENT SYSTEM");
         System.out.println("                 [Java 17 Academic Project]");
         System.out.println("=".repeat(75));
+        if (webServer.getPort() > 0) {
+            System.out.printf("  🌐 Live Web Dashboard: %s (Option 7 se kholein)%n", webServer.getUrl());
+            System.out.println("=".repeat(75));
+        }
 
         boolean running = true;
         while (running) {
             printMainMenu();
-            System.out.print("👉 Apna choice dalein (1-7): ");
+            System.out.print("👉 Apna choice dalein (1-8): ");
             String input = scanner.nextLine();
 
             try {
-                int choice = InputValidator.parseMenuChoice(input, 1, 7);
+                int choice = InputValidator.parseMenuChoice(input, 1, 8);
                 switch (choice) {
                     case 1 -> handleParkVehicle();
                     case 2 -> handleExitVehicle();
@@ -72,7 +118,12 @@ public class Main {
                     case 5 -> handleShowRevenue();
                     case 6 -> runScriptedDemo();
                     case 7 -> {
+                        System.out.println("\n🌐 Browser me Live Web Dashboard open ho raha hai: " + webServer.getUrl());
+                        webServer.openInBrowser();
+                    }
+                    case 8 -> {
                         System.out.println("\n👋 Smart Parking Garage use karne ke liye dhanyawad! Shubh yatra!");
+                        webServer.stop();
                         running = false;
                     }
                 }
@@ -100,7 +151,8 @@ public class Main {
         System.out.println("│  4. 🗺️  Show Garage Map         (पूरा 2D फ्लोर मैप देखें)               │");
         System.out.println("│  5. 💰 Show Revenue & History  (कुल कमाई एवं इतिहास देखें)             │");
         System.out.println("│  6. 🎬 Run Scripted Demo       (स्वचालित 10-गाड़ियों का डेमो चलाएं)    │");
-        System.out.println("│  7. ❌ Quit Application        (बाहर निकलें)                           │");
+        System.out.println("│  7. 🌐 Open Web Dashboard      (ब्राउज़र में लाइव वेब डैशबोर्ड खोलें)  │");
+        System.out.println("│  8. ❌ Quit Application        (बाहर निकलें)                           │");
         System.out.println("└───────────────────────────────────────────────────────────────────────┘");
     }
 
@@ -199,18 +251,24 @@ public class Main {
                 new Vehicle("HR26EV4001", VehicleType.EV)
         };
 
-        LocalDateTime entry3HoursAgo = now.minusHours(3);
-        LocalDateTime entry26HoursAgo = now.minusHours(26);
+        LocalDateTime entryBike = now.minusHours(2);
+        LocalDateTime entryCar = now.minusHours(3);
+        LocalDateTime entrySuv = now.minusHours(26);
+        LocalDateTime entryEv = now.minusHours(4);
 
         System.out.println("--- STEP 1: PARKING 10 MIXED VEHICLES ---");
         for (int i = 0; i < demoVehicles.length; i++) {
             Vehicle v = demoVehicles[i];
             try {
                 LocalDateTime entryTime;
-                if (i == 1) {
-                    entryTime = entry3HoursAgo;
+                if (i == 0) {
+                    entryTime = entryBike;
+                } else if (i == 1) {
+                    entryTime = entryCar;
                 } else if (i == 2) {
-                    entryTime = entry26HoursAgo;
+                    entryTime = entrySuv;
+                } else if (i == 3) {
+                    entryTime = entryEv;
                 } else {
                     entryTime = now.minusMinutes((i + 1) * 15L);
                 }
@@ -238,23 +296,39 @@ public class Main {
             System.out.println("  ✗ " + e.getMessage());
         }
 
-        System.out.println("\n--- STEP 4: CHECKOUT VEHICLE 1 (3-HOUR STAY) ---");
+        System.out.println("\n--- STEP 4: CHECKOUT BIKE (2-HOUR STAY) ---");
         try {
-            Ticket exitTicket1 = garage.exitVehicle("DL01CR2002", now);
-            GaragePrinter.printReceipt(exitTicket1);
+            Ticket exitBike = garage.exitVehicle("MH12BK0001", now);
+            GaragePrinter.printReceipt(exitBike);
         } catch (VehicleNotFoundException e) {
             System.out.println("  ✗ " + e.getMessage());
         }
 
-        System.out.println("--- STEP 5: CHECKOUT VEHICLE 2 (26-HOUR STAY: DAILY CAP DEMO) ---");
+        System.out.println("\n--- STEP 5: CHECKOUT CAR (3-HOUR STAY) ---");
         try {
-            Ticket exitTicket2 = garage.exitVehicle("KA05SV3003", now);
-            GaragePrinter.printReceipt(exitTicket2);
+            Ticket exitCar = garage.exitVehicle("DL01CR2002", now);
+            GaragePrinter.printReceipt(exitCar);
         } catch (VehicleNotFoundException e) {
             System.out.println("  ✗ " + e.getMessage());
         }
 
-        System.out.println("--- STEP 6: FINAL GARAGE STATE & REVENUE REPORT ---");
+        System.out.println("\n--- STEP 6: CHECKOUT SUV (26-HOUR STAY: DAILY CAP DEMO) ---");
+        try {
+            Ticket exitSuv = garage.exitVehicle("KA05SV3003", now);
+            GaragePrinter.printReceipt(exitSuv);
+        } catch (VehicleNotFoundException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+
+        System.out.println("\n--- STEP 7: CHECKOUT EV (4-HOUR STAY: EV CHARGING FEE DEMO) ---");
+        try {
+            Ticket exitEv = garage.exitVehicle("MH01EV1001", now);
+            GaragePrinter.printReceipt(exitEv);
+        } catch (VehicleNotFoundException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+
+        System.out.println("--- STEP 8: FINAL GARAGE STATE & REVENUE REPORT ---");
         GaragePrinter.printGarage(garage);
         GaragePrinter.printRevenueAndHistory(garage);
 
