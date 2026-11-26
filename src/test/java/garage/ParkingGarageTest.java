@@ -42,7 +42,7 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("1. Gaadi park karne par slot occupied hona chahiye aur ticket active banna chahiye")
+    @DisplayName("1. Parking a vehicle should occupy the slot and create an active ticket")
     void testParkVehicleSuccess() throws Exception {
         Vehicle car = new Vehicle("MH12AB1234", VehicleType.CAR);
         Ticket ticket = garage.parkVehicle(car, baseTime);
@@ -56,7 +56,7 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("2. Same number plate dobara park karne par DuplicateVehicleException aana chahiye")
+    @DisplayName("2. Parking a duplicate license plate should throw DuplicateVehicleException")
     void testDuplicateVehicleException() throws Exception {
         Vehicle car1 = new Vehicle("MH12AB1234", VehicleType.CAR);
         garage.parkVehicle(car1, baseTime);
@@ -66,7 +66,7 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("3. License plate se gaadi sahi slot par milni chahiye")
+    @DisplayName("3. Should find vehicle at the expected slot by license plate")
     void testFindVehicleSuccess() throws Exception {
         Vehicle suv = new Vehicle("KA05MB9999", VehicleType.SUV);
         Ticket ticket = garage.parkVehicle(suv, baseTime);
@@ -78,13 +78,13 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("4. Jo gaadi garage me nahi hai use dhoondhne par VehicleNotFoundException aana chahiye")
+    @DisplayName("4. Finding a missing vehicle should throw VehicleNotFoundException")
     void testFindVehicleNotFound() {
         assertThrows(VehicleNotFoundException.class, () -> garage.findVehicle("DL01XX9999"));
     }
 
     @Test
-    @DisplayName("5. Exit karne par slot khaali hona chahiye aur bill generate hona chahiye")
+    @DisplayName("5. Exiting a vehicle should vacate the slot and generate a bill")
     void testExitVehicleSuccess() throws Exception {
         Vehicle car = new Vehicle("DL01A5678", VehicleType.CAR);
         garage.parkVehicle(car, baseTime);
@@ -99,7 +99,7 @@ class ParkingGarageTest {
         // Ticket verify karo
         assertFalse(completedTicket.isActive());
         assertEquals(exitTime, completedTicket.getExitTime());
-        assertEquals(60.0, completedTicket.getTotalFee(), "2 ghante ka charge 2 * ₹30 = ₹60 hona chahiye");
+        assertEquals(60.0, completedTicket.getTotalFee(), "2-hour charge should be 2 * Rs. 30 = Rs. 60");
 
         // Slot khaali ho jana chahiye
         assertFalse(slotBefore.isOccupied());
@@ -112,13 +112,13 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("6. Missing gaadi ko exit karne par VehicleNotFoundException aana chahiye")
+    @DisplayName("6. Exiting a missing vehicle should throw VehicleNotFoundException")
     void testExitVehicleNotFound() {
         assertThrows(VehicleNotFoundException.class, () -> garage.exitVehicle("DL01XX9999"));
     }
 
     @Test
-    @DisplayName("7. Ek se zyada checkouts ka total revenue sahi judna chahiye")
+    @DisplayName("7. Cumulative revenue across multiple checkouts should sum accurately")
     void testCumulativeRevenue() throws Exception {
         Vehicle bike = new Vehicle("MH12BK1111", VehicleType.BIKE);
         Vehicle car = new Vehicle("DL01CR2222", VehicleType.CAR);
@@ -132,11 +132,11 @@ class ParkingGarageTest {
 
         // Car 3 ghante baad gayi: 3 * ₹30 = ₹90
         garage.exitVehicle("DL01CR2222", baseTime.plusHours(3));
-        assertEquals(100.0, garage.getTotalRevenue(), "Total revenue ₹10 + ₹90 = ₹100 hona chahiye");
+        assertEquals(100.0, garage.getTotalRevenue(), "Total revenue should be Rs. 10 + Rs. 90 = Rs. 100");
     }
 
     @Test
-    @DisplayName("8. Collections, Analytics, Maintenance, Ticket ID lookup aur GarageSummary sahi kaam karein")
+    @DisplayName("8. Collections, Analytics, Maintenance, Ticket ID lookup, and GarageSummary should work correctly")
     void testAnalyticsAndSummary() throws Exception {
         garage.getGrid()[0][2].setUnderMaintenance(true);
         assertTrue(garage.getMaintenanceSlotIds().contains("F0-S02"));
@@ -164,7 +164,7 @@ class ParkingGarageTest {
     }
 
     @Test
-    @DisplayName("9. Galat slot me park karne par wrong-slot fine (₹150) aur actual slot update hona chahiye")
+    @DisplayName("9. Parking in wrong slot should apply wrong-slot fine (Rs. 150) and update actual slot")
     void testWrongSlotFine() throws Exception {
         Vehicle car = new Vehicle("MH12AB1234", VehicleType.CAR);
         Ticket ticket = garage.parkVehicle(car, baseTime);
@@ -174,8 +174,8 @@ class ParkingGarageTest {
         Ticket updated = garage.reportWrongSlot("MH12AB1234", "F0-S07");
         assertEquals("F0-S02", updated.getAssignedSlot().getId());
         assertEquals("F0-S07", updated.getSlot().getId());
-        assertFalse(garage.getGrid()[0][2].isOccupied(), "Purana assigned slot F0-S02 vacate hona chahiye");
-        assertTrue(garage.getGrid()[0][7].isOccupied(), "Actual slot F0-S07 occupied hona chahiye");
+        assertFalse(garage.getGrid()[0][2].isOccupied(), "Previously assigned slot F0-S02 should be vacated");
+        assertTrue(garage.getGrid()[0][7].isOccupied(), "Actual slot F0-S07 should be occupied");
         assertTrue(updated.hasWrongSlotFine());
         assertEquals(ParkingGarage.WRONG_SLOT_FINE, updated.getWrongSlotFine());
 
@@ -183,6 +183,6 @@ class ParkingGarageTest {
         Ticket closed = garage.exitVehicle("MH12AB1234", baseTime.plusHours(2));
         assertEquals(210.0, closed.getTotalFee());
         assertEquals(210.0, garage.getTotalRevenue());
-        assertFalse(garage.getGrid()[0][7].isOccupied(), "Exit par actual slot F0-S07 vacate hona chahiye");
+        assertFalse(garage.getGrid()[0][7].isOccupied(), "Actual slot F0-S07 should be vacated on exit");
     }
 }

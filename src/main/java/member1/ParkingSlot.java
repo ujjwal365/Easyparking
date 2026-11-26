@@ -23,9 +23,9 @@ public class ParkingSlot {
     // WHY CONSTRUCTOR: Building banate waqt har bay ko uska floor, slot number aur slot type dene ke liye.
     public ParkingSlot(int floor, int slotNumber, SlotType slotType) {
         if (floor < 0 || slotNumber < 0) {
-            throw new IllegalArgumentException("Floor aur slot number negative nahi ho sakte.");
+            throw new IllegalArgumentException("Floor and slot number cannot be negative.");
         }
-        this.slotType = Objects.requireNonNull(slotType, "SlotType null nahi ho sakta.");
+        this.slotType = Objects.requireNonNull(slotType, "SlotType cannot be null.");
         this.floor = floor;
         this.slotNumber = slotNumber;
         this.currentVehicle = null; // Shuru me slot khaali hota hai
@@ -54,12 +54,12 @@ public class ParkingSlot {
     // WHY THIS FUNCTION: Slot me gaadi park karne ke liye. Safety check bhi karta hai ki slot pehle se bhara ya maintenance me na ho.
     public void park(Vehicle vehicle) {
         if (underMaintenance) {
-            throw new IllegalStateException("Slot " + getId() + " maintenance me hai, park nahi kar sakte!");
+            throw new IllegalStateException("Slot " + getId() + " is under maintenance and cannot be used for parking!");
         }
         if (isOccupied()) {
-            throw new IllegalStateException("Slot " + getId() + " already bhara hua hai!");
+            throw new IllegalStateException("Slot " + getId() + " is already occupied!");
         }
-        this.currentVehicle = Objects.requireNonNull(vehicle, "Park karne ke liye vehicle null nahi ho sakta.");
+        this.currentVehicle = Objects.requireNonNull(vehicle, "Vehicle to park cannot be null.");
     }
 
     // WHY THIS FUNCTION: Checkout par slot ko khaali karne ke liye (currentVehicle ko null set karta hai taaki doosri gaadi aa sake).

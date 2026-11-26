@@ -17,10 +17,10 @@ public class Vehicle {
     // WHY CONSTRUCTOR: Gaadi enter hote waqt plate aur type validate karke clean format me store karne ke liye.
     public Vehicle(String licensePlate, VehicleType type) {
         if (licensePlate == null || licensePlate.trim().isEmpty()) {
-            throw new IllegalArgumentException("License plate khaali nahi ho sakti!");
+            throw new IllegalArgumentException("License plate cannot be empty!");
         }
         if (type == null) {
-            throw new IllegalArgumentException("Vehicle type null nahi ho sakta!");
+            throw new IllegalArgumentException("Vehicle type cannot be null!");
         }
 
         // Spaces hata kar CAPITAL letters me save karte hain (e.g. "mh 12 ab 1234" -> "MH12AB1234")

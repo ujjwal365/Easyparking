@@ -67,22 +67,22 @@ public class Main {
                 this.webServer.start();
             }
         } catch (Exception e) {
-            System.err.println("[WEB SERVER WARNING] Dashboard start nahi ho paya: " + e.getMessage());
+            System.err.println("[WEB SERVER WARNING] Could not start dashboard: " + e.getMessage());
         }
     }
 
     public void startWebOnly() {
         ensureWebServerStarted();
         if (webServer.getPort() == 0) {
-            System.err.println("[ERROR] Web dashboard start nahi ho saka. Kripya port availability aur permissions check karein.");
+            System.err.println("[ERROR] Could not start web dashboard. Please check port availability and permissions.");
             return;
         }
         System.out.println("=".repeat(75));
         System.out.println("          🌐 SMART PARKING GARAGE - WEB DASHBOARD MODE 🌐");
         System.out.println("=".repeat(75));
         System.out.printf("  Live Web Dashboard: %s%n", webServer.getUrl());
-        System.out.println("  Browser automatically open ho raha hai...");
-        System.out.println("  Band karne ke liye console me 'Ctrl + C' dabayein.");
+        System.out.println("  Opening in your browser automatically...");
+        System.out.println("  Press 'Ctrl + C' in the console to stop the server.");
         System.out.println("=".repeat(75));
         webServer.openInBrowser();
 
@@ -98,14 +98,14 @@ public class Main {
         System.out.println("                 [Java 17 Academic Project]");
         System.out.println("=".repeat(75));
         if (webServer.getPort() > 0) {
-            System.out.printf("  🌐 Live Web Dashboard: %s (Option 7 se kholein)%n", webServer.getUrl());
+            System.out.printf("  🌐 Live Web Dashboard: %s (Open via Option 7)%n", webServer.getUrl());
             System.out.println("=".repeat(75));
         }
 
         boolean running = true;
         while (running) {
             printMainMenu();
-            System.out.print("👉 Apna choice dalein (1-8): ");
+            System.out.print("👉 Enter your choice (1-8): ");
             String input = scanner.nextLine();
 
             try {
@@ -118,11 +118,11 @@ public class Main {
                     case 5 -> handleShowRevenue();
                     case 6 -> runScriptedDemo();
                     case 7 -> {
-                        System.out.println("\n🌐 Browser me Live Web Dashboard open ho raha hai: " + webServer.getUrl());
+                        System.out.println("\n🌐 Opening Live Web Dashboard in browser: " + webServer.getUrl());
                         webServer.openInBrowser();
                     }
                     case 8 -> {
-                        System.out.println("\n👋 Smart Parking Garage use karne ke liye dhanyawad! Shubh yatra!");
+                        System.out.println("\n👋 Thank you for using Smart Parking Garage! Safe travels!");
                         webServer.stop();
                         running = false;
                     }
@@ -134,7 +134,7 @@ public class Main {
             }
 
             if (running) {
-                System.out.println("\nAage badhne ke liye ENTER dabayein...");
+                System.out.println("\nPress ENTER to continue...");
                 scanner.nextLine();
             }
         }
@@ -145,37 +145,37 @@ public class Main {
         System.out.println("┌───────────────────────────────────────────────────────────────────────┐");
         System.out.println("│                     GARAGE MAIN CONTROL MENU                          │");
         System.out.println("├───────────────────────────────────────────────────────────────────────┤");
-        System.out.println("│  1. 🚗 Park Vehicle            (गाड़ी पार्क करें)                      │");
-        System.out.println("│  2. 📤 Exit Vehicle            (गाड़ी निकालें एवं बिल प्राप्त करें)    │");
-        System.out.println("│  3. 🔍 Find Vehicle Slot       (गाड़ी की लोकेशन खोजें)                 │");
-        System.out.println("│  4. 🗺️  Show Garage Map         (पूरा 2D फ्लोर मैप देखें)               │");
-        System.out.println("│  5. 💰 Show Revenue & History  (कुल कमाई एवं इतिहास देखें)             │");
-        System.out.println("│  6. 🎬 Run Scripted Demo       (स्वचालित 10-गाड़ियों का डेमो चलाएं)    │");
-        System.out.println("│  7. 🌐 Open Web Dashboard      (ब्राउज़र में लाइव वेब डैशबोर्ड खोलें)  │");
-        System.out.println("│  8. ❌ Quit Application        (बाहर निकलें)                           │");
+        System.out.println("│  1. 🚗 Park Vehicle                                                   │");
+        System.out.println("│  2. 📤 Exit Vehicle & Generate Bill                                   │");
+        System.out.println("│  3. 🔍 Find Vehicle Slot                                              │");
+        System.out.println("│  4. 🗺️  Show Garage Map (2D Floor Layout)                             │");
+        System.out.println("│  5. 💰 Show Revenue & History                                         │");
+        System.out.println("│  6. 🎬 Run Scripted Demo (10 Vehicles)                                │");
+        System.out.println("│  7. 🌐 Open Web Dashboard                                             │");
+        System.out.println("│  8. ❌ Quit Application                                               │");
         System.out.println("└───────────────────────────────────────────────────────────────────────┘");
     }
 
     private void handleParkVehicle() {
         System.out.println("\n--- PARK INCOMING VEHICLE ---");
         try {
-            System.out.print("Indian License Plate daalein (Jaise: MH12AB1234, DL01A5678): ");
+            System.out.print("Enter Indian License Plate (e.g. MH12AB1234, DL01A5678): ");
             String rawPlate = scanner.nextLine();
             String plate = InputValidator.validateAndNormalizePlate(rawPlate);
 
-            System.out.println("Vehicle Type chunein:");
+            System.out.println("Select Vehicle Type:");
             System.out.println("  1. BIKE (Two-Wheeler - ₹10/hr)");
             System.out.println("  2. CAR  (Sedan/Hatchback - ₹30/hr)");
             System.out.println("  3. SUV  (Large Vehicle - ₹50/hr)");
             System.out.println("  4. EV   (Electric Vehicle - ₹40/hr + Charging)");
-            System.out.print("Choice daalein (1-4): ");
+            System.out.print("Enter choice (1-4): ");
             int typeChoice = InputValidator.parseMenuChoice(scanner.nextLine(), 1, 4);
             VehicleType vType = InputValidator.parseVehicleType(typeChoice);
 
             Vehicle vehicle = new Vehicle(plate, vType);
             Ticket ticket = garage.parkVehicle(vehicle);
 
-            System.out.println("\n[SUCCESS] Gaadi safaltapoorvak park ho gayi!");
+            System.out.println("\n[SUCCESS] Vehicle parked successfully!");
             System.out.printf("  Ticket ID   : %s%n", ticket.getTicketId());
             System.out.printf("  Vehicle     : %s%n", vehicle);
             System.out.printf("  Assigned Bay: %s (%s)%n",
@@ -190,12 +190,12 @@ public class Main {
     private void handleExitVehicle() {
         System.out.println("\n--- EXIT VEHICLE & SETTLE FEE ---");
         try {
-            System.out.print("Nikalne wali gaadi ka number plate daalein: ");
+            System.out.print("Enter license plate of exiting vehicle: ");
             String rawPlate = scanner.nextLine();
             String plate = InputValidator.validateAndNormalizePlate(rawPlate);
 
             Ticket ticket = garage.exitVehicle(plate);
-            System.out.println("\n[SUCCESS] Checkout complete ho gaya!");
+            System.out.println("\n[SUCCESS] Checkout completed!");
             GaragePrinter.printReceipt(ticket);
 
         } catch (InvalidInputException | VehicleNotFoundException e) {
@@ -206,12 +206,12 @@ public class Main {
     private void handleFindVehicle() {
         System.out.println("\n--- FIND VEHICLE LOCATION ---");
         try {
-            System.out.print("Khojne ke liye gaadi ka number daalein: ");
+            System.out.print("Enter license plate to locate: ");
             String rawPlate = scanner.nextLine();
             String plate = InputValidator.validateAndNormalizePlate(rawPlate);
 
             ParkingSlot slot = garage.findVehicle(plate);
-            System.out.println("\n[FOUND] Gaadi mil gayi! Yaha khadi hai:");
+            System.out.println("\n[FOUND] Vehicle located at:");
             System.out.printf("  Slot ID       : %s%n", slot.getId());
             System.out.printf("  Floor Level   : Floor %d%n", slot.getFloor());
             System.out.printf("  Bay Index     : Slot %d%n", slot.getSlotNumber());
@@ -234,7 +234,7 @@ public class Main {
         System.out.println("\n" + "=".repeat(75));
         System.out.println("               🚀 RUNNING SCRIPTED AUTOMATED DEMO 🚀");
         System.out.println("=".repeat(75));
-        System.out.println("10 gaadiyon ke sath live demo shuru ho raha hai...\n");
+        System.out.println("Starting live demo with 10 vehicles...\n");
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -290,7 +290,7 @@ public class Main {
         String searchPlate = "DL01CR2002";
         try {
             ParkingSlot slot = garage.findVehicle(searchPlate);
-            System.out.printf("  ✓ Gaadi %s mil gayi: Slot %s par hai (%s, Floor %d)%n",
+            System.out.printf("  ✓ Vehicle %s found at Slot %s (%s, Floor %d)%n",
                     searchPlate, slot.getId(), slot.getSlotType().getDisplayName(), slot.getFloor());
         } catch (VehicleNotFoundException e) {
             System.out.println("  ✗ " + e.getMessage());

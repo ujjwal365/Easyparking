@@ -91,7 +91,7 @@ public class GaragePrinter {
     }
 
     public static void printLegend() {
-        System.out.println(color(BOLD, "  LEGEND (प्रतीक सूची):"));
+        System.out.println(color(BOLD, "  LEGEND:"));
         System.out.println("  FREE SLOTS:   [s] Small (Bike)   [ ] Regular (Car)   [L] Large (SUV)   [⚡] EV Charging");
         System.out.println("  PARKED:       [B] Bike (₹10/h)   [C] Car (₹30/h)     [S] SUV (₹50/h)   [E] Electric (₹40/h)");
         System.out.println("  EXIT POINT:   Floor 0, Slot 0 (Distance penalty = floor * 20 + slotIndex)");
@@ -100,7 +100,7 @@ public class GaragePrinter {
 
     public static void printReceipt(Ticket ticket) {
         if (ticket == null || ticket.getFeeBreakdown() == null) {
-            System.out.println("[ERROR] Receipt print nahi ho sakti: ticket incomplete hai.");
+            System.out.println("[ERROR] Cannot print receipt: ticket is incomplete.");
             return;
         }
 
@@ -155,7 +155,7 @@ public class GaragePrinter {
         System.out.println("=".repeat(75));
 
         if (history.isEmpty()) {
-            System.out.println("  Abhi tak koi checkout session complete nahi hua hai.");
+            System.out.println("  No checkout sessions have been completed yet.");
         } else {
             System.out.printf("  %-10s | %-12s | %-6s | %-8s | %-8s | %-10s%n",
                     "Ticket ID", "Plate", "Type", "Slot", "Duration", "Fee Paid");

@@ -52,7 +52,7 @@ public class FeeCalculator {
 
     public FeeBreakdown calculateFee(Ticket ticket, LocalDateTime exitTime) {
         if (ticket == null) {
-            throw new IllegalArgumentException("Ticket null nahi ho sakta.");
+            throw new IllegalArgumentException("Ticket cannot be null.");
         }
         return calculateFee(
                 ticket.getVehicle().getType(),
@@ -67,10 +67,10 @@ public class FeeCalculator {
                                      LocalDateTime entryTime,
                                      LocalDateTime exitTime) {
         if (vehicleType == null || slotType == null || entryTime == null || exitTime == null) {
-            throw new IllegalArgumentException("Sabhi parameters non-null hone chahiye.");
+            throw new IllegalArgumentException("All parameters must be non-null.");
         }
         if (exitTime.isBefore(entryTime)) {
-            throw new IllegalArgumentException("Exit time entry time se pehle ka nahi ho sakta.");
+            throw new IllegalArgumentException("Exit time cannot be before entry time.");
         }
 
         Duration duration = Duration.between(entryTime, exitTime);

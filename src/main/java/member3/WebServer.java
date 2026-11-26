@@ -79,7 +79,7 @@ public class WebServer {
         }
 
         if (server == null) {
-            throw new IOException("Koyi free port nahi mila (8080-8090 sab occupied hain): " + lastError.getMessage(), lastError);
+            throw new IOException("No free port available (ports 8080-8090 are all occupied): " + lastError.getMessage(), lastError);
         }
 
         // Setup Handlers
@@ -177,7 +177,7 @@ public class WebServer {
                 Runtime.getRuntime().exec(new String[]{"rundll32", "url.dll,FileProtocolHandler", url});
             }
         } catch (Exception e) {
-            System.out.println("[NOTE] Browser open nahi ho paya: " + e.getMessage() + ". Kripya manually kholein: " + getUrl());
+            System.out.println("[NOTE] Could not open browser automatically: " + e.getMessage() + ". Please open manually: " + getUrl());
         }
     }
 
@@ -338,7 +338,7 @@ public class WebServer {
             try {
                 String cleanPlate = InputValidator.validateAndNormalizePlate(rawPlate);
                 if (rawType == null || rawType.trim().isEmpty()) {
-                    throw new InvalidInputException("Vehicle type select karna zaroori hai (BIKE, CAR, SUV, EV).");
+                    throw new InvalidInputException("Vehicle type selection is required (BIKE, CAR, SUV, EV).");
                 }
                 VehicleType vType = VehicleType.valueOf(rawType.trim().toUpperCase());
                 Vehicle vehicle = new Vehicle(cleanPlate, vType);
@@ -349,7 +349,7 @@ public class WebServer {
                 String notice = isFallback ? "No EV slot free, assigned regular slot (no charging)." : null;
 
                 String res = String.format(Locale.US,
-                        "{\"success\":true,\"message\":\"Gaadi successfully park ho gayi!\",\"ticketId\":\"%s\",\"plate\":\"%s\",\"vehicleType\":\"%s\",\"slotId\":\"%s\",\"slotType\":\"%s\",\"floor\":%d,\"notice\":%s}",
+                        "{\"success\":true,\"message\":\"Vehicle parked successfully!\",\"ticketId\":\"%s\",\"plate\":\"%s\",\"vehicleType\":\"%s\",\"slotId\":\"%s\",\"slotType\":\"%s\",\"floor\":%d,\"notice\":%s}",
                         ticket.getTicketId(),
                         cleanPlate,
                         vType.name(),
@@ -433,7 +433,7 @@ public class WebServer {
             try {
                 String cleanPlate = InputValidator.validateAndNormalizePlate(rawPlate);
                 if (actualSlotId == null || actualSlotId.trim().isEmpty()) {
-                    throw new InvalidInputException("Actual slot ID dena zaroori hai (e.g. F0-S07).");
+                    throw new InvalidInputException("Actual slot ID is required (e.g. F0-S07).");
                 }
 
                 Ticket ticket = garage.reportWrongSlot(cleanPlate, actualSlotId.trim());

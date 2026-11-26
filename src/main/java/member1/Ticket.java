@@ -28,11 +28,11 @@ public class Ticket {
 
     // WHY CONSTRUCTOR: Jab gaadi park hoti hai tab naya active ticket create karne ke liye.
     public Ticket(String ticketId, Vehicle vehicle, ParkingSlot slot, LocalDateTime entryTime) {
-        this.ticketId        = Objects.requireNonNull(ticketId, "Ticket ID null nahi ho sakta");
-        this.vehicle         = Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
-        this.assignedSlot    = Objects.requireNonNull(slot, "Slot null nahi ho sakta");
+        this.ticketId        = Objects.requireNonNull(ticketId, "Ticket ID cannot be null.");
+        this.vehicle         = Objects.requireNonNull(vehicle, "Vehicle cannot be null.");
+        this.assignedSlot    = Objects.requireNonNull(slot, "Slot cannot be null.");
         this.slot            = this.assignedSlot;
-        this.entryTime       = Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
+        this.entryTime       = Objects.requireNonNull(entryTime, "Entry time cannot be null.");
         this.exitTime        = null;
         this.feeBreakdown    = null;
         this.wrongSlotFine   = 0.0;
@@ -43,12 +43,12 @@ public class Ticket {
     // WHY THIS FUNCTION: Agar driver assigned slot ke bajay kisi aur slot me gaadi park kar de toh actual slot update karke fine lagane ke liye.
     public void reassignToWrongSlot(ParkingSlot actualSlot, double fineAmount, String reason) {
         if (!this.active) {
-            throw new IllegalStateException("Closed ticket par wrong-slot fine nahi lagaya ja sakta.");
+            throw new IllegalStateException("Cannot apply wrong-slot fine to a closed ticket.");
         }
         if (fineAmount < 0) {
-            throw new IllegalArgumentException("Fine amount negative nahi ho sakta.");
+            throw new IllegalArgumentException("Fine amount cannot be negative.");
         }
-        this.slot            = Objects.requireNonNull(actualSlot, "Actual slot null nahi ho sakta");
+        this.slot            = Objects.requireNonNull(actualSlot, "Actual slot cannot be null.");
         this.wrongSlotFine   = fineAmount;
         this.wrongSlotReason = reason;
     }
@@ -57,10 +57,10 @@ public class Ticket {
     // Guard check ensures ki ek close ticket dobara close na ho (double billing se bachav).
     public void completeTicket(LocalDateTime exitTime, FeeBreakdown feeBreakdown) {
         if (!this.active) {
-            throw new IllegalStateException("Ticket " + ticketId + " pehle se close ho chuka hai.");
+            throw new IllegalStateException("Ticket " + ticketId + " is already closed.");
         }
-        this.exitTime     = Objects.requireNonNull(exitTime, "Exit time null nahi ho sakta");
-        this.feeBreakdown = Objects.requireNonNull(feeBreakdown, "Fee breakdown null nahi ho sakta");
+        this.exitTime     = Objects.requireNonNull(exitTime, "Exit time cannot be null.");
+        this.feeBreakdown = Objects.requireNonNull(feeBreakdown, "Fee breakdown cannot be null.");
         this.active       = false;
     }
 

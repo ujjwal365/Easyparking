@@ -39,7 +39,7 @@ public class SlotAllocator {
 
     public ParkingSlot allocateSlot(ParkingSlot[][] grid, Vehicle vehicle) throws GarageFullException {
         if (grid == null || vehicle == null) {
-            throw new IllegalArgumentException("Grid aur Vehicle null nahi ho sakte.");
+            throw new IllegalArgumentException("Grid and Vehicle cannot be null.");
         }
 
         VehicleType vType = vehicle.getType();
@@ -60,7 +60,7 @@ public class SlotAllocator {
                 return fallbackSlot;
             }
 
-            throw new GarageFullException("Garage Full! EV " + vehicle.getLicensePlate() + " ke liye koi slot nahi bacha.");
+            throw new GarageFullException("Garage Full! No slot available for EV " + vehicle.getLicensePlate() + ".");
         }
 
         // --------------------------------------------------------------------
@@ -75,7 +75,7 @@ public class SlotAllocator {
             if (fallbackSlot != null) {
                 return fallbackSlot;
             }
-            throw new GarageFullException("Garage Full! Bike " + vehicle.getLicensePlate() + " ke liye slot nahi mila.");
+            throw new GarageFullException("Garage Full! No slot available for Bike " + vehicle.getLicensePlate() + ".");
         }
 
         // --------------------------------------------------------------------
@@ -90,7 +90,7 @@ public class SlotAllocator {
             if (largeSlot != null) {
                 return largeSlot;
             }
-            throw new GarageFullException("Garage Full! Car " + vehicle.getLicensePlate() + " ke liye slot nahi mila.");
+            throw new GarageFullException("Garage Full! No slot available for Car " + vehicle.getLicensePlate() + ".");
         }
 
         // --------------------------------------------------------------------
@@ -101,7 +101,7 @@ public class SlotAllocator {
             if (largeSlot != null) {
                 return largeSlot;
             }
-            throw new GarageFullException("Garage Full! SUV " + vehicle.getLicensePlate() + " ke liye LARGE slot nahi bacha.");
+            throw new GarageFullException("Garage Full! No LARGE slot available for SUV " + vehicle.getLicensePlate() + ".");
         }
 
         ParkingSlot candidate = findBestFreeSlotOfTypes(grid, vType.getCompatibleSlots());
@@ -109,7 +109,7 @@ public class SlotAllocator {
             return candidate;
         }
 
-        throw new GarageFullException("Garage Full! Gaadi ke liye slot uplabdh nahi: " + vehicle);
+        throw new GarageFullException("Garage Full! No slot available for vehicle: " + vehicle);
     }
 
     private ParkingSlot findBestFreeSlotOfTypes(ParkingSlot[][] grid, List<SlotType> allowedTypes) {

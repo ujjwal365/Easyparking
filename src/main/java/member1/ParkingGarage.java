@@ -78,7 +78,7 @@ public class ParkingGarage {
     // WHY PARAMETERIZED CONSTRUCTOR: Testing ya custom size (e.g. 5 floors x 20 slots) ke garage banane ke liye.
     public ParkingGarage(int totalFloors, int slotsPerFloor) {
         if (totalFloors <= 0 || slotsPerFloor <= 0) {
-            throw new IllegalArgumentException("Floors aur slots positive numbers hone chahiye.");
+            throw new IllegalArgumentException("Floors and slots must be positive numbers.");
         }
         this.grid = new ParkingSlot[totalFloors][slotsPerFloor];
         this.activeTickets = new HashMap<>();
@@ -121,7 +121,7 @@ public class ParkingGarage {
     // taaki exitVehicle() aur findVehicle() me same code repeat na ho aur HashMap key hamesha match kare.
     private String normalizePlate(String licensePlate) {
         if (licensePlate == null) {
-            throw new IllegalArgumentException("License plate null nahi ho sakti");
+            throw new IllegalArgumentException("License plate cannot be null.");
         }
         return licensePlate.replaceAll("\\s+", "").toUpperCase();
     }
@@ -135,15 +135,15 @@ public class ParkingGarage {
     public synchronized Ticket parkVehicle(Vehicle vehicle, LocalDateTime entryTime)
             throws DuplicateVehicleException, GarageFullException {
 
-        Objects.requireNonNull(vehicle, "Vehicle null nahi ho sakta");
-        Objects.requireNonNull(entryTime, "Entry time null nahi ho sakta");
+        Objects.requireNonNull(vehicle, "Vehicle cannot be null.");
+        Objects.requireNonNull(entryTime, "Entry time cannot be null.");
         String plate = vehicle.getLicensePlate();
 
         // Step 1: HashMap se O(1) duplicate check — kya yeh gaadi pehle se andar hai?
         if (activeTickets.containsKey(plate)) {
             Ticket existing = activeTickets.get(plate);
             throw new DuplicateVehicleException(
-                    plate + " already slot " + existing.getSlot().getId() + " me parked hai!");
+                    plate + " is already parked in slot " + existing.getSlot().getId() + "!");
         }
 
         // Step 2: Member 2 ke SlotAllocator se exit gate ke sabse kareeb compatible free slot dhoondhna
@@ -183,7 +183,7 @@ public class ParkingGarage {
         // Step 1: HashMap se O(1) speed me active ticket nikalna
         Ticket ticket = activeTickets.get(plate);
         if (ticket == null) {
-            throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi mili!");
+            throw new VehicleNotFoundException("Vehicle '" + plate + "' not found in garage!");
         }
 
         // Step 2: Member 2 ke FeeCalculator se parking + EV charging bill nikalna
@@ -208,18 +208,18 @@ public class ParkingGarage {
         String plate = normalizePlate(licensePlate);
         Ticket ticket = activeTickets.get(plate);
         if (ticket == null) {
-            throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi mili!");
+            throw new VehicleNotFoundException("Vehicle '" + plate + "' not found in garage!");
         }
 
         ParkingSlot actualSlot = findSlotById(actualSlotId)
-                .orElseThrow(() -> new IllegalArgumentException("Slot '" + actualSlotId + "' nahi mila!"));
+                .orElseThrow(() -> new IllegalArgumentException("Slot '" + actualSlotId + "' not found!"));
 
         ParkingSlot currentSlot = ticket.getSlot();
         if (actualSlot.getId().equalsIgnoreCase(currentSlot.getId())) {
-            throw new IllegalArgumentException("Gaadi pehle se slot " + actualSlot.getId() + " me hi parked hai.");
+            throw new IllegalArgumentException("Vehicle is already parked in slot " + actualSlot.getId() + ".");
         }
         if (!actualSlot.isAvailable()) {
-            throw new IllegalStateException("Slot " + actualSlot.getId() + " available nahi hai (occupied ya maintenance me hai).");
+            throw new IllegalStateException("Slot " + actualSlot.getId() + " is not available (occupied or under maintenance).");
         }
 
         currentSlot.vacate();
@@ -253,7 +253,7 @@ public class ParkingGarage {
         String plate = normalizePlate(licensePlate);
         Ticket ticket = activeTickets.get(plate);
         if (ticket == null) {
-            throw new VehicleNotFoundException("Gaadi '" + plate + "' garage me nahi hai!");
+            throw new VehicleNotFoundException("Vehicle '" + plate + "' is not in the garage!");
         }
         return ticket.getSlot();
     }
@@ -365,7 +365,7 @@ public class ParkingGarage {
 
     // WHY THIS FUNCTION: Kisi ek vehicle type (e.g. sirf EV ya sirf BIKE) ki active count nikalne ke liye.
     public int getActiveCountByType(VehicleType type) {
-        Objects.requireNonNull(type, "VehicleType null nahi ho sakta");
+        Objects.requireNonNull(type, "VehicleType cannot be null.");
         int count = 0;
         for (Ticket ticket : activeTickets.values()) {
             if (ticket.getVehicle().getType() == type) {

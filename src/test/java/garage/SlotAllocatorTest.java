@@ -45,19 +45,19 @@ class SlotAllocatorTest {
     }
 
     @Test
-    @DisplayName("1. Exit (0,0) ke sabse kareeb ka slot allocate hona chahiye")
+    @DisplayName("1. Should allocate the slot nearest to exit (0,0)")
     void testNearestSlotAllocation() throws GarageFullException {
         // Floor 0 par regular slot 2 se shuru hote hain (dist = 0*20 + 2 = 2)
         Vehicle car = new Vehicle("DL01CR1001", VehicleType.CAR);
         ParkingSlot allocated = allocator.allocateSlot(grid, car);
 
         assertNotNull(allocated);
-        assertEquals(0, allocated.getFloor(), "Floor 0 milna chahiye");
-        assertEquals(2, allocated.getSlotNumber(), "Slot 2 milna chahiye");
+        assertEquals(0, allocated.getFloor(), "Should allocate Floor 0");
+        assertEquals(2, allocated.getSlotNumber(), "Should allocate Slot 2");
     }
 
     @Test
-    @DisplayName("2. Bike ko pehle SMALL slot (F0-S00) milna chahiye")
+    @DisplayName("2. Bike should prefer SMALL slot (F0-S00)")
     void testBikePrefersSmallSlot() throws GarageFullException {
         Vehicle bike = new Vehicle("MH12BK9999", VehicleType.BIKE);
         ParkingSlot allocated = allocator.allocateSlot(grid, bike);
@@ -68,7 +68,7 @@ class SlotAllocatorTest {
     }
 
     @Test
-    @DisplayName("3. SUV ko sirf LARGE slot (Slot 7) milna chahiye")
+    @DisplayName("3. SUV should only be allocated a LARGE slot (Slot 7)")
     void testSuvOnlyLargeSlot() throws GarageFullException {
         Vehicle suv = new Vehicle("KA05SV7777", VehicleType.SUV);
         ParkingSlot allocated = allocator.allocateSlot(grid, suv);
@@ -78,7 +78,7 @@ class SlotAllocatorTest {
     }
 
     @Test
-    @DisplayName("4. EV ko pehle EV_CHARGING slot milna chahiye")
+    @DisplayName("4. EV should prefer EV_CHARGING slot")
     void testEvPrefersChargingSlot() throws GarageFullException {
         Vehicle ev = new Vehicle("MH01EV1111", VehicleType.EV);
         ParkingSlot allocated = allocator.allocateSlot(grid, ev);
@@ -89,7 +89,7 @@ class SlotAllocatorTest {
     }
 
     @Test
-    @DisplayName("5. Saare EV charging slots full hone par EV regular slot me fallback kare")
+    @DisplayName("5. EV should fall back to REGULAR slot when all EV charging slots are full")
     void testEvFallbackToRegularSlot() throws GarageFullException {
         // Teeno floors ke saare EV charging slots (slots 8 aur 9) bhar dete hain
         for (int f = 0; f < 3; f++) {
@@ -102,13 +102,13 @@ class SlotAllocatorTest {
         ParkingSlot fallbackSlot = allocator.allocateSlot(grid, incomingEv);
 
         assertNotNull(fallbackSlot);
-        assertEquals(SlotType.REGULAR, fallbackSlot.getSlotType(), "Regular slot milna chahiye fallback me");
+        assertEquals(SlotType.REGULAR, fallbackSlot.getSlotType(), "Should fall back to a REGULAR slot");
         assertEquals(0, fallbackSlot.getFloor());
         assertEquals(2, fallbackSlot.getSlotNumber());
     }
 
     @Test
-    @DisplayName("6. Jab koi compatible slot na bache toh GarageFullException aana chahiye")
+    @DisplayName("6. Should throw GarageFullException when no compatible slot is available")
     void testGarageFullException() {
         // Saare LARGE slots bhar dete hain
         grid[0][7].park(new Vehicle("SUV_0", VehicleType.SUV));
@@ -120,17 +120,17 @@ class SlotAllocatorTest {
     }
 
     @Test
-    @DisplayName("7. Purity Test: SlotAllocator ko grid modify nahi karna chahiye")
+    @DisplayName("7. Purity Test: SlotAllocator must not modify the grid")
     void testAllocatorPurity() throws GarageFullException {
         Vehicle car = new Vehicle("MH12CR5555", VehicleType.CAR);
         ParkingSlot returnedSlot = allocator.allocateSlot(grid, car);
 
-        assertFalse(returnedSlot.isOccupied(), "Slot khaali hi rehna chahiye");
+        assertFalse(returnedSlot.isOccupied(), "Allocated slot should remain unoccupied");
         assertNull(returnedSlot.getCurrentVehicle());
     }
 
     @Test
-    @DisplayName("8. Maintenance mode wale slot ko SlotAllocator skip karna chahiye")
+    @DisplayName("8. SlotAllocator should skip slots in maintenance mode")
     void testMaintenanceSlotSkipped() throws GarageFullException {
         grid[0][2].setUnderMaintenance(true); // Closest CAR slot under maintenance
 
@@ -138,6 +138,6 @@ class SlotAllocatorTest {
         ParkingSlot allocated = allocator.allocateSlot(grid, car);
 
         assertEquals(0, allocated.getFloor());
-        assertEquals(3, allocated.getSlotNumber(), "F0-S02 maintenance me hai toh F0-S03 milna chahiye");
+        assertEquals(3, allocated.getSlotNumber(), "Since F0-S02 is under maintenance, F0-S03 should be allocated");
     }
 }

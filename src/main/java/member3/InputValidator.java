@@ -27,16 +27,16 @@ public final class InputValidator {
 
     public static String validateAndNormalizePlate(String rawPlate) throws InvalidInputException {
         if (rawPlate == null || rawPlate.trim().isEmpty()) {
-            throw new InvalidInputException("License plate khaali nahi ho sakti!");
+            throw new InvalidInputException("License plate cannot be empty!");
         }
 
         String cleaned = rawPlate.replaceAll("[\\s\\-]+", "").toUpperCase();
 
         if (!PLATE_PATTERN.matcher(cleaned).matches()) {
             throw new InvalidInputException(
-                    "Galat Indian Number Plate format: '" + rawPlate + "'!\n" +
-                    "Sahi format: 2 State letters + 2 RTO digits + 1-2 Series letters + 4 digits.\n" +
-                    "Udaharan: MH12AB1234, DL01A5678, KA05MB9999");
+                    "Invalid Indian Number Plate format: '" + rawPlate + "'!\n" +
+                    "Expected format: 2 State letters + 2 RTO digits + 1-2 Series letters + 4 digits.\n" +
+                    "Example: MH12AB1234, DL01A5678, KA05MB9999");
         }
 
         return cleaned;
@@ -50,16 +50,16 @@ public final class InputValidator {
 
     public static int parseMenuChoice(String input, int min, int max) throws InvalidInputException {
         if (input == null || input.trim().isEmpty()) {
-            throw new InvalidInputException("Kripya " + min + " se " + max + " ke beech koi number daalein.");
+            throw new InvalidInputException("Please enter a number between " + min + " and " + max + ".");
         }
         try {
             int choice = Integer.parseInt(input.trim());
             if (choice < min || choice > max) {
-                throw new InvalidInputException("Option " + choice + " range se bahar hai! " + min + " se " + max + " ke beech chunein.");
+                throw new InvalidInputException("Option " + choice + " is out of range! Choose between " + min + " and " + max + ".");
             }
             return choice;
         } catch (NumberFormatException e) {
-            throw new InvalidInputException("'" + input.trim() + "' valid number nahi hai. Kripya sirf digits daalein.");
+            throw new InvalidInputException("'" + input.trim() + "' is not a valid number. Please enter digits only.");
         }
     }
 
@@ -69,7 +69,7 @@ public final class InputValidator {
             case 2 -> VehicleType.CAR;
             case 3 -> VehicleType.SUV;
             case 4 -> VehicleType.EV;
-            default -> throw new InvalidInputException("Galat vehicle choice: " + choice + ". 1 se 4 ke beech chunein.");
+            default -> throw new InvalidInputException("Invalid vehicle choice: " + choice + ". Choose between 1 and 4.");
         };
     }
 }
