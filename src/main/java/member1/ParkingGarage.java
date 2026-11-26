@@ -45,7 +45,7 @@ public class ParkingGarage {
 
     public static final int DEFAULT_FLOORS = 3;
     public static final int DEFAULT_SLOTS_PER_FLOOR = 10;
-    public static final double WRONG_SLOT_FINE = 150.0;
+    public static final double WRONG_SLOT_FINE = 850.0;
 
     // 1. 2D Array -> Garage ka physical layout (Floor x Slot)
     private final ParkingSlot[][] grid;
