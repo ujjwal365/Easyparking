@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -56,7 +57,7 @@
             justify-content: space-between;
             align-items: center;
             border-bottom: 4px solid #081c15;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
         }
 
         .header-title h1 {
@@ -119,7 +120,7 @@
             border: 1.5px solid var(--border-subtle);
             border-radius: 8px;
             padding: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .stat-card.empty-stat {
@@ -140,8 +141,13 @@
             margin-bottom: 4px;
         }
 
-        .empty-stat .stat-label { color: var(--slot-empty-text); }
-        .filled-stat .stat-label { color: var(--slot-filled-text); }
+        .empty-stat .stat-label {
+            color: var(--slot-empty-text);
+        }
+
+        .filled-stat .stat-label {
+            color: var(--slot-filled-text);
+        }
 
         .stat-num {
             font-size: 1.85rem;
@@ -149,8 +155,13 @@
             color: var(--primary-dark);
         }
 
-        .empty-stat .stat-num { color: var(--slot-empty-text); }
-        .filled-stat .stat-num { color: var(--slot-filled-text); }
+        .empty-stat .stat-num {
+            color: var(--slot-empty-text);
+        }
+
+        .filled-stat .stat-num {
+            color: var(--slot-filled-text);
+        }
 
         .stat-sub {
             font-size: 0.75rem;
@@ -165,7 +176,7 @@
             border-radius: 8px;
             padding: 18px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .ops-grid {
@@ -176,7 +187,9 @@
         }
 
         @media (max-width: 768px) {
-            .ops-grid { grid-template-columns: 1fr; }
+            .ops-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .ops-box {
@@ -265,7 +278,9 @@
             transition: opacity 0.15s ease;
         }
 
-        button:hover { opacity: 0.92; }
+        button:hover {
+            opacity: 0.92;
+        }
 
         .btn-green {
             background-color: var(--primary-dark);
@@ -311,7 +326,7 @@
             border-radius: 8px;
             padding: 18px;
             margin-bottom: 20px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .section-header {
@@ -470,7 +485,7 @@
 
         .slot-box:hover {
             transform: translateY(-2px);
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
         }
 
         /* EMPTY: LIGHT GREEN */
@@ -565,7 +580,7 @@
 
         .slot-box.highlight {
             border: 3px solid #000000 !important;
-            box-shadow: 0 0 14px rgba(0,0,0,0.6) !important;
+            box-shadow: 0 0 14px rgba(0, 0, 0, 0.6) !important;
         }
 
         /* 6. HISTORY TABLE */
@@ -595,8 +610,13 @@
             border: 1px solid #e5e7eb;
         }
 
-        tr:nth-child(even) td { background: #fafafa; }
-        tr:hover td { background: #f0fdf4; }
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        tr:hover td {
+            background: #f0fdf4;
+        }
 
         /* RECEIPT MODAL (SIMPLE & ELEGANT) */
         .modal-overlay {
@@ -612,7 +632,9 @@
             z-index: 100;
         }
 
-        .modal-overlay.active { display: flex; }
+        .modal-overlay.active {
+            display: flex;
+        }
 
         .receipt-modal-box {
             background: var(--white);
@@ -621,7 +643,7 @@
             width: 90%;
             max-width: 420px;
             padding: 20px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
         }
 
         .receipt-bill {
@@ -681,12 +703,16 @@
             font-size: 0.88rem;
             font-weight: 700;
             display: none;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             z-index: 200;
         }
-        .toast-msg.show { display: block; }
+
+        .toast-msg.show {
+            display: block;
+        }
     </style>
 </head>
+
 <body>
 
     <!-- 1. DARK GREEN & WHITE HEADER -->
@@ -757,7 +783,8 @@
                 <div class="ops-box">
                     <div class="ops-title"><span>📤</span> Exit Vehicle &amp; Pay / Locate</div>
                     <div class="form-row">
-                        <input type="text" id="exitPlate" placeholder="Plate to Exit or Find (e.g. DL01CR2002)" maxlength="12">
+                        <input type="text" id="exitPlate" placeholder="Plate to Exit or Find (e.g. DL01CR2002)"
+                            maxlength="12">
                     </div>
                     <div style="display: flex; gap: 8px; margin-top: 18px;">
                         <button class="btn-gray" style="flex: 1;" onclick="findVehicle()">
@@ -796,7 +823,8 @@
         <div class="section-box">
             <div class="section-header">
                 <h2>📊 Vehicle Tariff &amp; Revenue Breakdown</h2>
-                <span style="font-size: 0.78rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 4px;">
+                <span
+                    style="font-size: 0.78rem; font-weight: 700; color: #166534; background: #dcfce7; padding: 4px 8px; border-radius: 4px;">
                     ⏱️ First 30 mins FREE
                 </span>
             </div>
@@ -874,11 +902,13 @@
                 <h2>🏢 2D Floor Layout Map</h2>
                 <div class="color-legend">
                     <div class="legend-tag">
-                        <span class="legend-box" style="background: var(--slot-filled-bg); border: 2px solid var(--slot-filled-border);"></span>
+                        <span class="legend-box"
+                            style="background: var(--slot-filled-bg); border: 2px solid var(--slot-filled-border);"></span>
                         <span>RED = Filled Space</span>
                     </div>
                     <div class="legend-tag">
-                        <span class="legend-box" style="background: var(--slot-empty-bg); border: 2px solid var(--slot-empty-border);"></span>
+                        <span class="legend-box"
+                            style="background: var(--slot-empty-bg); border: 2px solid var(--slot-empty-border);"></span>
                         <span>LIGHT GREEN = Empty Space</span>
                     </div>
                 </div>
@@ -918,7 +948,8 @@
                     <tbody id="historyBody">
                         <tr>
                             <td colspan="11" style="text-align: center; color: #6b7280; padding: 18px;">
-                                No completed checkouts yet. Click "Run 1-Click Viva Demo" to generate Bike, Car, SUV, and EV bills.
+                                No completed checkouts yet. Click "Run 1-Click Viva Demo" to generate Bike, Car, SUV,
+                                and EV bills.
                             </td>
                         </tr>
                     </tbody>
@@ -933,7 +964,8 @@
         <div class="receipt-modal-box">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <h3 style="color: var(--primary-dark); font-weight: 800;">🧾 Parking Receipt</h3>
-                <button style="background:none; border:none; font-size: 1.4rem; cursor:pointer;" onclick="closeReceipt()">&times;</button>
+                <button style="background:none; border:none; font-size: 1.4rem; cursor:pointer;"
+                    onclick="closeReceipt()">&times;</button>
             </div>
 
             <div class="receipt-bill">
@@ -953,7 +985,8 @@
                 <div class="bill-row"><span>Billable Hours:</span><span id="billHours">--</span></div>
                 <div class="bill-divider"></div>
                 <div class="bill-row"><span>Base Parking Fee:</span><span id="billBaseFee">₹0.00</span></div>
-                <div class="bill-row" id="billChargingRow" style="display: none;"><span>EV Charging Fee:</span><span id="billChargingFee">₹0.00</span></div>
+                <div class="bill-row" id="billChargingRow" style="display: none;"><span>EV Charging Fee:</span><span
+                        id="billChargingFee">₹0.00</span></div>
                 <div class="bill-total-row">
                     <span>TOTAL PAID:</span>
                     <span id="billTotal">₹0.00</span>
@@ -1040,8 +1073,8 @@
                 const fCard = document.createElement('div');
                 fCard.className = 'floor-card';
 
-                const gateTag = fl.floor === 0 
-                    ? `<span class="gate-pill">🚪 ENTRY &amp; EXIT GATE (Floor 0, Bay 0)</span>` 
+                const gateTag = fl.floor === 0
+                    ? `<span class="gate-pill">🚪 ENTRY &amp; EXIT GATE (Floor 0, Bay 0)</span>`
                     : '';
 
                 fCard.innerHTML = `
@@ -1321,4 +1354,5 @@
         loadHistory();
     </script>
 </body>
+
 </html>

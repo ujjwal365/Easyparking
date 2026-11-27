@@ -202,7 +202,7 @@ public class ParkingGarage {
     }
 
     // WHY THIS FUNCTION: Agar driver assigned slot ke bajay kisi aur slot (jaise Car ko SUV/EV bay) me park kar de
-    // toh grid me actual slot update karke ₹150 wrong-slot violation fine lagane ke liye.
+    // toh grid me actual slot update karke ₹850 wrong-slot violation fine lagane ke liye.
     public synchronized Ticket reportWrongSlot(String licensePlate, String actualSlotId)
             throws VehicleNotFoundException {
         String plate = normalizePlate(licensePlate);
