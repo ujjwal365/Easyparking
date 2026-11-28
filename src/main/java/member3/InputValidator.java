@@ -4,19 +4,7 @@ import member1.VehicleType;
 
 import java.util.regex.Pattern;
 
-/**
- * ============================================================================
- * MEMBER 3 (Face) - InputValidator Utility Class
- * ============================================================================
- * Yeh class user ke inputs ko validate aur clean karti hai taaki program
- * galat input par CRASH NA HO.
- * 
- * 1. Indian License Plate Regex: ^[A-Z]{2}\\d{2}[A-Z]{1,2}\\d{4}$
- *    (Jaise: MH12AB1234, DL01A5678, KA05MB9999)
- * 2. Plate Normalizer: Space aur hyphens hatakar letters CAPITAL karta hai.
- * 3. Safe Integer Parser: Text input ko number me convert karta hai bina crash huye.
- * ============================================================================
- */
+
 public final class InputValidator {
 
     public static final String INDIAN_PLATE_REGEX = "^[A-Z]{2}\\d{2}[A-Z]{1,2}\\d{4}$";
