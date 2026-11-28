@@ -2,16 +2,7 @@ package member1;
 
 import java.util.Objects;
 
-/**
- * ParkingSlot — Garage ke andar ek single parking bay ko represent karta hai.
- *
- * Har slot me yeh 5 cheezein hoti hain:
- *   1. floor            -> Kaunse floor par hai (0, 1, 2)
- *   2. slotNumber       -> Floor par bay index (0 se 9)
- *   3. slotType         -> Bay ka size/type (SMALL, REGULAR, LARGE, EV_CHARGING)
- *   4. currentVehicle   -> Abhi kaunsi gaadi khadi hai (agar khaali hai toh null)
- *   5. underMaintenance -> Repair/cleaning ke liye slot temporary band hai ya nahi
- */
+/*** ParkingSlot — Garage ke andar ek single parking bay ko represent karta hai.***/
 public class ParkingSlot {
 
     private final int floor;
@@ -20,7 +11,7 @@ public class ParkingSlot {
     private Vehicle currentVehicle;
     private boolean underMaintenance = false;
 
-    // WHY CONSTRUCTOR: Building banate waqt har bay ko uska floor, slot number aur slot type dene ke liye.
+    //har slot  ko uska floor, slot number aur slot type dene ke liye.
     public ParkingSlot(int floor, int slotNumber, SlotType slotType) {
         if (floor < 0 || slotNumber < 0) {
             throw new IllegalArgumentException("Floor and slot number cannot be negative.");
@@ -31,27 +22,27 @@ public class ParkingSlot {
         this.currentVehicle = null; // Shuru me slot khaali hota hai
     }
 
-    // WHY THIS FUNCTION: Check karta hai ki slot me koi gaadi abhi khadi hai ya nahi (SlotAllocator aur map use karte hain).
+    //karta hai ki slot me koi gaadi abhi khadi hai ya nahi (SlotAllocator aur map use karte hain).
     public boolean isOccupied() {
         return currentVehicle != null;
     }
 
-    // WHY THIS FUNCTION: Check karta hai ki slot nayi gaadi ke liye ready hai ya nahi (khaali hona chahiye + maintenance off).
+    //Check karta hai ki slot nayi gaadi ke liye ready hai ya nahi.
     public boolean isAvailable() {
         return currentVehicle == null && !underMaintenance;
     }
 
-    // WHY THIS FUNCTION: Pata karne ke liye ki yeh slot repair/maintenance me band hai ya chalu hai.
+    // Pata karne ke liye ki yeh slot repair/maintenance me band hai ya chalu hai.
     public boolean isUnderMaintenance() {
         return underMaintenance;
     }
 
-    // WHY THIS FUNCTION: Admin kisi kharab bay ko maintenance mode ON/OFF kar sake bina grid todhe.
+    // Admin kisi kharab bay ko maintenance mode ON/OFF kar sake bina grid todhe.
     public void setUnderMaintenance(boolean underMaintenance) {
         this.underMaintenance = underMaintenance;
     }
 
-    // WHY THIS FUNCTION: Slot me gaadi park karne ke liye. Safety check bhi karta hai ki slot pehle se bhara ya maintenance me na ho.
+    //Slot me gaadi park karne ke liye.
     public void park(Vehicle vehicle) {
         if (underMaintenance) {
             throw new IllegalStateException("Slot " + getId() + " is under maintenance and cannot be used for parking!");
@@ -62,40 +53,39 @@ public class ParkingSlot {
         this.currentVehicle = Objects.requireNonNull(vehicle, "Vehicle to park cannot be null.");
     }
 
-    // WHY THIS FUNCTION: Checkout par slot ko khaali karne ke liye (currentVehicle ko null set karta hai taaki doosri gaadi aa sake).
     public Vehicle vacate() {
         Vehicle departed = this.currentVehicle;
         this.currentVehicle = null;
         return departed;
     }
 
-    // WHY THIS FUNCTION: Batata hai ki slot kaunse floor par hai (distance formula: floor * 20 + slotNumber me use hota hai).
+    //batata hai ki slot kaunse floor par hai
     public int getFloor() {
         return floor;
     }
 
-    // WHY THIS FUNCTION: Floor ke andar slot ki position index deta hai.
+    //Floor ke andar slot ki position index deta hai.
     public int getSlotNumber() {
         return slotNumber;
     }
 
-    // WHY THIS FUNCTION: Slot ka type deta hai taaki compatibility aur EV charging check ho sake.
+    //Slot ka type deta hai taaki compatibility aur EV charging check ho sake.
     public SlotType getSlotType() {
         return slotType;
     }
 
-    // WHY THIS FUNCTION: Agar koi gaadi khadi hai toh uska Vehicle object deta hai (dashboard aur search me use hota hai).
+    //Agar koi gaadi khadi hai toh uska Vehicle object deta hai.
     public Vehicle getCurrentVehicle() {
         return currentVehicle;
     }
 
-    // WHY THIS FUNCTION: Floor aur slot ko ek short ID string me badalta hai, jaise "F0-S02" ya "F1-S08".
+    // Floor aur slot ko ek short ID string me badalta hai.
     public String getId() {
         return String.format("F%d-S%02d", floor, slotNumber);
     }
 
-    // WHY THIS FUNCTION: 2D console map me dikhane ke liye short symbol deta hai:
-    //   [X] = Maintenance, [B]/[C]/[S]/[E] = Gaadi khadi hai, [s]/[ ]/[L]/[⚡] = Khaali slot.
+    //2 D console map me dikhane ke liye short symbol deta hai:
+    //[X] = Maintenance, [B]/[C]/[S]/[E] = Gaadi khadi hai.
     public String getDisplaySymbol() {
         if (underMaintenance) {
             return "[X]";
@@ -111,7 +101,6 @@ public class ParkingSlot {
         return slotType.getDisplaySymbol();
     }
 
-    // WHY OVERRIDE equals(): Do slots equal tab maane jayenge jab unka floor aur slotNumber dono same hon.
     // Yeh zaroori hai jab ParkingSlot ko ArrayList.contains() ya HashSet me compare karein.
     @Override
     public boolean equals(Object o) {
@@ -121,13 +110,13 @@ public class ParkingSlot {
         return floor == that.floor && slotNumber == that.slotNumber;
     }
 
-    // WHY OVERRIDE hashCode(): equals() ke saath hashCode() match hona chahiye taaki HashSet/HashMap sahi kaam kare.
+    //equals() ke saath hashCode() match hona chahiye taaki HashSet/HashMap sahi kaam kare.
     @Override
     public int hashCode() {
         return Objects.hash(floor, slotNumber);
     }
 
-    // WHY OVERRIDE toString(): Debugging aur console me slot ka status cleanly print karne ke liye.
+    // Debugging aur console me slot ka status cleanly print karne ke liye.
     @Override
     public String toString() {
         String status;

@@ -17,30 +17,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
-/**
-ParkingGarage — Poore Smart Parking Garage ka main coordinator (Member 1 - Backbone).
-
- YAHAN KAUNSE DATA STRUCTURES USE KIYE HAIN AUR KYU (Viva Quick Guide):
  
- *   1. 2D Array (`ParkingSlot[][] grid`):
- *      - WHY: Garage ke floors (rows) aur slots (columns) fixed size ke hote hain (3 floors x 10 bays).
- *        `grid[floor][slot]` se kisi bhi physical bay par instant direct access milta hai.
- *
- *   2. HashMap (`HashMap<String, Ticket> activeTickets`):
- *      - WHY: Key = License Plate (e.g. "MH12AB1234"), Value = Active Ticket.
- *        Gaadi exit karte waqt, locate karte waqt, ya duplicate check karte waqt
- *        poore 30 slots me loop lagane ke bajay instant O(1) speed me ticket mil jaata hai!
- *
- *   3. ArrayList (`ArrayList<Ticket> ticketHistory`):
- *      - WHY: Completed parking tickets ko exact order (chronological history) me store karne ke liye.
- *        ArrayList ka size dynamically badhta hai, aur agar same gaadi din me 2 baar aaye toh
- *        dono baar ka alag ticket record save hota hai (ArrayList duplicates allow karta hai).
- *
- *   4. Set / HashSet (`Set<String> uniqueVisitors`):
- *      - WHY: Garage me ab tak kitni ALAG-ALAG (unique) gaadiyaan aayi hain yeh ginne ke liye.
- *        Set kabhi duplicate store nahi karta — agar ek car 3 baar bhi visit kare, Set me sirf 1 baar rahegi!
- */
 public class ParkingGarage {
 
     public static final int DEFAULT_FLOORS = 3;
@@ -68,8 +45,6 @@ public class ParkingGarage {
     private double totalRevenue = 0.0;
     private int peakOccupancy = 0;
 
-    // ===================== Constructors =====================
-
     // WHY DEFAULT CONSTRUCTOR: Bina size bataye standard 3 floors x 10 slots = 30 bays ka garage banane ke liye.
     public ParkingGarage() {
         this(DEFAULT_FLOORS, DEFAULT_SLOTS_PER_FLOOR);
@@ -89,8 +64,6 @@ public class ParkingGarage {
 
         buildGrid(totalFloors, slotsPerFloor);
     }
-
-    // WHY THIS FUNCTION: 2D array ke har cell [floor][slot] me ek naya ParkingSlot object create karne ke liye.
     private void buildGrid(int floors, int slotsPerFloor) {
         for (int f = 0; f < floors; f++) {
             for (int s = 0; s < slotsPerFloor; s++) {
@@ -99,8 +72,6 @@ public class ParkingGarage {
             }
         }
     }
-
-    //Slot number ke hisaab se har bay ka type decide karne ke liye:
     //   Index 0, 1 -> SMALL (Bikes)
     //   Index 2..6 -> REGULAR (Cars)
     //   Index 7    -> LARGE (SUVs)
@@ -139,28 +110,27 @@ public class ParkingGarage {
         Objects.requireNonNull(entryTime, "Entry time cannot be null.");
         String plate = vehicle.getLicensePlate();
 
-        // Step 1: HashMap se duplicate check
+        //HashMap se duplicate check
         if (activeTickets.containsKey(plate)) {
             Ticket existing = activeTickets.get(plate);
             throw new DuplicateVehicleException(
                     plate + " is already parked in slot " + existing.getSlot().getId() + "!");
         }
 
-        // Step 2: Member 2 ke SlotAllocator se exit gate ke sabse kareeb compatible free slot dhoondhna
+        //Member 2 ke SlotAllocator se exit gate ke sabse kareeb compatible free slot dhoondhna
         ParkingSlot bestSlot = slotAllocator.allocateSlot(grid, vehicle);
 
-        // Step 3: Us bay me gaadi park karke slot ko occupied mark karna
+        //Us bay me gaadi park karke slot ko occupied mark karna
         bestSlot.park(vehicle);
 
-        // Step 4: Naya Ticket banana, HashMap me save karna, aur Set me unique visitor record karna
+        //Naya Ticket banana, HashMap me save karna, aur Set me unique visitor record karna
         ticketCounter++;
         String ticketId = "TKT-" + ticketCounter;
         Ticket ticket = new Ticket(ticketId, vehicle, bestSlot, entryTime);
 
-        activeTickets.put(plate, ticket);   // HashMap: instant lookup ke liye
-        uniqueVisitors.add(plate);          // HashSet: duplicate plates apne aap ignore ho jayengi
+        activeTickets.put(plate, ticket);   // HashMap:instant lookup ke liye
+        uniqueVisitors.add(plate);          // HashSet:duplicate plates apne aap ignore ho jayengi
 
-        // Step 5: Peak occupancy record update karna (agar abhi tak sabse zyada gaadiyaan andar hain)
         if (activeTickets.size() > peakOccupancy) {
             peakOccupancy = activeTickets.size();
         }
@@ -200,9 +170,6 @@ public class ParkingGarage {
 
         return ticket;
     }
-
-    // WHY THIS FUNCTION: Agar driver assigned slot ke bajay kisi aur slot (jaise Car ko SUV/EV bay) me park kar de
-    // toh grid me actual slot update karke ₹850 wrong-slot violation fine lagane ke liye.
     public synchronized Ticket reportWrongSlot(String licensePlate, String actualSlotId)
             throws VehicleNotFoundException {
         String plate = normalizePlate(licensePlate);
@@ -232,7 +199,7 @@ public class ParkingGarage {
         return ticket;
     }
 
-    // WHY THIS FUNCTION: Slot ID (e.g. "F0-S08") se 2D grid me exact ParkingSlot object dhoondhne ke liye.
+    // Slot ID se 2D grid me exact ParkingSlot object dhoondhne ke liye.
     public Optional<ParkingSlot> findSlotById(String slotId) {
         if (slotId == null || slotId.isBlank()) {
             return Optional.empty();
@@ -248,7 +215,7 @@ public class ParkingGarage {
         return Optional.empty();
     }
 
-    //Valet lookup — number plate dalkar turant O(1) time me batata hai gaadi kis slot par hai.
+    //Valet lookup — number plate dalkar turant batata hai gaadi kis slot par hai.
     public ParkingSlot findVehicle(String licensePlate) throws VehicleNotFoundException {
         String plate = normalizePlate(licensePlate);
         Ticket ticket = activeTickets.get(plate);
@@ -257,8 +224,6 @@ public class ParkingGarage {
         }
         return ticket.getSlot();
     }
-
-    // Demo ya fresh start ke liye saare maps, lists, sets aur grid ko reset karna.
     public synchronized void reset() {
         activeTickets.clear();
         ticketHistory.clear();
@@ -268,7 +233,6 @@ public class ParkingGarage {
         buildGrid(grid.length, grid[0].length);
     }
 
-    //UI, WebServer aur Tests safely garage ki dimensions, counts aur lists read kar sakein.
     public ParkingSlot[][] getGrid()         { return grid; }
     public int getTotalFloors()              { return grid.length; }
     public int getSlotsPerFloor()            { return grid[0].length; }
@@ -282,7 +246,7 @@ public class ParkingGarage {
     public FeeCalculator getFeeCalculator()  { return feeCalculator; }
     public int getPeakOccupancy()            { return peakOccupancy; }
 
-    // unmodifiableList / unmodifiableMap isliye return karte hain taaki bahar se koi history ya activeTickets delete na kar sake.
+    // unmodifiableList / unmodifiableMap isliye return karte hain taaki koi bhi history ya activeTickets delete na kar sake.
     public List<Ticket> getHistory()              { return Collections.unmodifiableList(ticketHistory); }
     public Map<String, Ticket> getActiveTickets() { return Collections.unmodifiableMap(activeTickets); }
 
@@ -299,27 +263,23 @@ public class ParkingGarage {
         }
         return freeSlots;
     }
-
-    // WHY THIS FUNCTION & WHY Set (HashSet):
-    //   Abhi garage ke andar jitni gaadiyaan khadi hain unki unique license plates deta hai.
-    //   Set isliye use kiya kyunki har active gaadi ki plate unique hoti hai (no duplicates).
+    //Abhi garage ke andar jitni gaadiyaan khadi hain unki unique license plates deta hai.
+    //Set isliye use kiya kyunki har active gaadi ki plate unique hoti hai (no duplicates).
     public Set<String> getActiveLicensePlates() {
         return new HashSet<>(activeTickets.keySet());
     }
 
-    // WHY THIS FUNCTION & WHY Set:
-    //   Ab tak garage me kitni alag-alag (unique) gaadiyaan park ho chuki hain unka set deta hai.
+    //Ab tak garage me kitni alag-alag (unique) gaadiyaan park ho chuki hain unka set deta hai.
     public Set<String> getUniqueVisitors() {
         return Collections.unmodifiableSet(uniqueVisitors);
     }
 
-    // WHY THIS FUNCTION: Unique visitors ki total ginti batata hai (e.g. 1 car 2 baar aayi toh bhi count 1 hi rahega).
+    //Unique visitors ki total ginti batata hai (e.g. 1 car 2 baar aayi toh bhi count 1 hi rahega).
     public int getUniqueVisitorCount() {
         return uniqueVisitors.size();
     }
 
-    // WHY THIS FUNCTION & WHY Set (HashSet):
-    //   Jo slots abhi maintenance mode me band hain unke IDs (e.g. "F0-S03") ek Set me return karta hai.
+    //Jo slots abhi maintenance mode me band hain unke IDs (e.g. "F0-S03") ek Set me return karta hai.
     public Set<String> getMaintenanceSlotIds() {
         Set<String> maintenanceIds = new HashSet<>();
         for (int f = 0; f < grid.length; f++) {
@@ -332,9 +292,7 @@ public class ParkingGarage {
         return maintenanceIds;
     }
 
-    // WHY THIS FUNCTION & WHY HashMap:
-    //   Har VehicleType (BIKE, CAR, SUV, EV) ki kitni gaadiyaan abhi andar hain, uska summary HashMap deta hai.
-    //   HashMap isliye use kiya kyunki Key = VehicleType aur Value = Count pair banana sabse clean hota hai!
+    //Har VehicleType (BIKE, CAR, SUV, EV) ki kitni gaadiyaan abhi andar hain, uska summary HashMap deta hai.
     public HashMap<VehicleType, Integer> getActiveVehicleCountByType() {
         HashMap<VehicleType, Integer> counts = new HashMap<>();
         for (VehicleType type : VehicleType.values()) {
@@ -349,7 +307,7 @@ public class ParkingGarage {
 
 
 
-    // WHY THIS FUNCTION: Floor-wise check karne ke liye ki kisi ek floor par kitni gaadiyaan parked hain.
+    //Floor-wise check karne ke liye ki kisi ek floor par kitni gaadiyaan parked hain.
     public int getOccupiedCountByFloor(int floor) {
         if (floor < 0 || floor >= grid.length) {
             throw new IllegalArgumentException("Invalid floor: " + floor);
@@ -363,7 +321,7 @@ public class ParkingGarage {
         return count;
     }
 
-    // WHY THIS FUNCTION: Kisi ek vehicle type (e.g. sirf EV ya sirf BIKE) ki active count nikalne ke liye.
+    //Kisi ek vehicle type (e.g. sirf EV ya sirf BIKE) ki active count nikalne ke liye.
     public int getActiveCountByType(VehicleType type) {
         Objects.requireNonNull(type, "VehicleType cannot be null.");
         int count = 0;
@@ -375,7 +333,7 @@ public class ParkingGarage {
         return count;
     }
 
-    // WHY THIS FUNCTION: Garage kitna % bhara hua hai yeh calculate karta hai (0.0% se 100.0%).
+    //Garage kitna % bhara hua hai yeh calculate karta hai (0.0% se 100.0%).
     public double getOccupancyRate() {
         int total = getTotalCapacity();
         if (total == 0) {
@@ -384,7 +342,7 @@ public class ParkingGarage {
         return (double) activeTickets.size() / total * 100.0;
     }
 
-    // WHY THIS FUNCTION: Agar user plate ke bajay Ticket ID (e.g. "TKT-1001") se search kare toh ticket dhoondh sake.
+    //Agar user plate ke bajay Ticket ID (e.g. "TKT-1001") se search kare toh ticket dhoondh sake.
     public Optional<Ticket> findTicketById(String ticketId) {
         if (ticketId == null || ticketId.isBlank()) {
             return Optional.empty();
@@ -397,7 +355,7 @@ public class ParkingGarage {
         return Optional.empty();
     }
 
-    // WHY THIS FUNCTION: Dashboard aur analytics ke liye saare key metrics ek hi GarageSummary record me dene ke liye.
+    //Dashboard aur analytics ke liye saare key metrics ek hi GarageSummary record me dene ke liye.
     public GarageSummary getSummarySnapshot() {
         return new GarageSummary(
                 getTotalCapacity(),
