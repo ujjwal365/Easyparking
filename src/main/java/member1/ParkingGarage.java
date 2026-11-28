@@ -131,7 +131,7 @@ public class ParkingGarage {
     }
 
     // Gaadi ko garage me park karne ka poora 4-step workflow chalata hai
-    // (`synchronized` isliye hai taaki do threads ek saath same slot allocate na kar dein).
+    // `synchronized` isliye hai taaki do threads ek saath same slot allocate na kar dein.
     public synchronized Ticket parkVehicle(Vehicle vehicle, LocalDateTime entryTime)
             throws DuplicateVehicleException, GarageFullException {
 
@@ -139,7 +139,7 @@ public class ParkingGarage {
         Objects.requireNonNull(entryTime, "Entry time cannot be null.");
         String plate = vehicle.getLicensePlate();
 
-        // Step 1: HashMap se O(1) duplicate check — kya yeh gaadi pehle se andar hai?
+        // Step 1: HashMap se duplicate check
         if (activeTickets.containsKey(plate)) {
             Ticket existing = activeTickets.get(plate);
             throw new DuplicateVehicleException(

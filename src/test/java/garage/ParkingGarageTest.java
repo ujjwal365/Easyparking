@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * ============================================================================
- * MEMBER 3 (Face) & MEMBER 1 (Backbone) - ParkingGarage Tests
+ * MEMBER 1 (Backbone) - ParkingGarage Tests
  * ============================================================================
  * Yeh test class ParkingGarage ke complete lifecycle ko test karti hai:
  * 1. Gaadi park karna (slot update, active ticket, count badhna)
